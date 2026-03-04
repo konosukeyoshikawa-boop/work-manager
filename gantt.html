@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タスク管理 - ガントチャート</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Meiryo', sans-serif; background: #faf8f3; color: #2d2a24; padding: 24px; }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; color: #1a1814; }
+  .subtitle { font-size: 13px; color: #8a8478; margin-bottom: 20px; }
+  .legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b6560; }
+  .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+  .gantt-container { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 900px; }
+  th { text-align: left; font-size: 11px; font-weight: 500; color: #8a8478; padding: 6px 8px; border-bottom: 1px solid #e5e0d5; position: sticky; top: 0; background: #faf8f3; z-index: 20; }
+  td { padding: 0; border-bottom: 1px solid #ede9e0; }
+  .task-label { padding: 8px; font-size: 13px; white-space: nowrap; min-width: 260px; max-width: 300px; }
+  .task-label .name { font-weight: 500; color: #2d2a24; }
+  .task-label .date { font-size: 11px; color: #8a8478; margin-top: 2px; }
+  .sub-label { padding: 4px 8px 4px 28px; font-size: 11px; white-space: nowrap; min-width: 260px; max-width: 300px; color: #6b6560; }
+  .sub-label .sub-name { font-weight: 400; }
+  .category-row td { padding: 10px 8px 4px; font-size: 12px; font-weight: 600; border-bottom: none; }
+  .category-row .cat-icon { margin-right: 6px; }
+  .section-row td { padding: 6px 8px 2px; font-size: 11px; font-weight: 600; color: #8a8478; border-bottom: none; letter-spacing: 0.5px; }
+  .timeline-cell { padding: 4px 0; height: 36px; position: relative; }
+  .sub-timeline { padding: 2px 0; height: 24px; position: relative; }
+  .bar { height: 22px; border-radius: 4px; position: absolute; top: 7px; min-width: 6px; cursor: pointer; transition: opacity 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+  .bar:hover { opacity: 0.85; }
+  .sub-bar { height: 14px; border-radius: 3px; position: absolute; top: 5px; min-width: 4px; opacity: 0.6; }
+  .today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; z-index: 10; }
+  .date-header { font-size: 10px; text-align: center; min-width: 32px; width: 32px; }
+  .date-header.today { color: #dc2626; font-weight: 700; }
+  .date-header.weekend-header { color: #b8b0a4; }
+  .tooltip { display: none; position: fixed; background: #fffdf8; border: 1px solid #d5d0c5; border-radius: 8px; padding: 12px; font-size: 12px; z-index: 100; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #2d2a24; }
+  .tooltip .tt-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; color: #1a1814; }
+  .tooltip .tt-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 3px; }
+  .tooltip .tt-label { color: #8a8478; }
+  .hold { background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 6px) !important; }
+
+  .cat-finance { color: #b45309; }
+  .cat-flycka { color: #7c3aed; }
+  .cat-sales { color: #2563eb; }
+  .cat-hr { color: #059669; }
+
+  .bar-finance, .sub-bar-finance { background: linear-gradient(90deg, #f59e0b, #d97706); }
+  .bar-flycka, .sub-bar-flycka { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+  .bar-sales, .sub-bar-sales { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+  .bar-hr, .sub-bar-hr { background: linear-gradient(90deg, #10b981, #059669); }
+  .bar-hold { background: #9ca3af; }
+  .bar-recurring { background: repeating-linear-gradient(90deg, #6366f1 0px, #6366f1 4px, transparent 4px, transparent 8px); border: 1px solid #6366f1; }
+  .bar-today, .sub-bar-today { background: linear-gradient(90deg, #dc2626, #b91c1c); box-shadow: 0 1px 4px rgba(220,38,38,0.3); }
+  .sub-bar-today { opacity: 0.7; }
+  .bar-done { background: #a3a39a; opacity: 0.5; }
+
+  tr.sub-row td { border-bottom: 1px solid #f2efe8; }
+  tr.sub-row:last-of-type td { border-bottom: 1px solid #ede9e0; }
+</style>
+</head>
+<body>
+
+<h1>タスク管理 ガントチャート</h1>
+<p class="subtitle">2026年3月 — 最終更新: 3/4（火）</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-color" style="background:#dc2626"></div>今日完了必須</div>
+  <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div>経営・財務</div>
+  <div class="legend-item"><div class="legend-color" style="background:#8b5cf6"></div>FLYCKA（D2C）</div>
+  <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div>営業代行</div>
+  <div class="legend-item"><div class="legend-color" style="background:#10b981"></div>人材紹介</div>
+  <div class="legend-item"><div class="legend-color" style="background:#9ca3af"></div>保留</div>
+  <div class="legend-item"><div class="legend-color" style="background:repeating-linear-gradient(90deg,#6366f1 0px,#6366f1 3px,transparent 3px,transparent 6px);border:1px solid #6366f1;width:14px;height:14px;border-radius:3px"></div>定常</div>
+  <div class="legend-item"><div style="width:2px;height:14px;background:#dc2626"></div>今日ライン</div>
+</div>
+
+<div class="gantt-container">
+  <table id="gantt"></table>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const TODAY = new Date(2026, 2, 4);
+const START = new Date(2026, 2, 3);
+const END = new Date(2026, 2, 31);
+const CELL = 32;
+
+const DAYS = [];
+for (let d = new Date(START); d <= END; d.setDate(d.getDate() + 1)) DAYS.push(new Date(d));
+const DOW = ['日','月','火','水','木','金','土'];
+
+const sections = [
+  { id: 'today', label: '🚨 今日（3/4）— 絶対完了' },
+  { id: 'week', label: '🔴 今週（〜3/7）' },
+  { id: 'next', label: '🟡 来週（3/10〜3/14）' },
+  { id: 'later', label: '🔵 今月後半' },
+  { id: 'hold', label: '⏸ 保留' },
+];
+
+const tasks = [
+  // 🚨 今日
+  { sec: 'today', cat: 'flycka', name: '✅ 新クリエイティブ制作体制', start: '2026-03-04', end: '2026-03-04', status: '完了', today: true, done: true, subs: [] },
+  { sec: 'today', cat: 'flycka', name: 'インフルエンサー施策立ち上げ', start: '2026-03-04', end: '2026-03-04', status: '未着手', today: true,
+    subs: [
+      { name: '目的・KPI定義', start: '2026-03-04', end: '2026-03-04' },
+      { name: '選定基準決定', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'リスト作成（10名）', start: '2026-03-04', end: '2026-03-04' },
+      { name: '文面・報酬ドラフト', start: '2026-03-04', end: '2026-03-04' },
+    ]},
+  { sec: 'today', cat: 'sales', name: 'イルグルム案件開始', start: '2026-03-04', end: '2026-03-04', status: '未着手', today: true,
+    subs: [
+      { name: '案件概要・ターゲット確認', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'リスト準備', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'トークスクリプト作成', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'OP割当・稼働開始', start: '2026-03-04', end: '2026-03-04' },
+    ]},
+  { sec: 'today', cat: 'sales', name: 'hypex定例準備', start: '2026-03-04', end: '2026-03-04', status: '未着手', today: true,
+    subs: [
+      { name: '実績・成果データ集計', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'KPI達成状況整理', start: '2026-03-04', end: '2026-03-04' },
+      { name: '課題と改善提案まとめ', start: '2026-03-04', end: '2026-03-04' },
+      { name: '定例資料作成', start: '2026-03-04', end: '2026-03-04' },
+    ]},
+  { sec: 'today', cat: 'finance', name: '資金調達準備', start: '2026-03-04', end: '2026-03-04', status: '未着手', today: true,
+    subs: [
+      { name: '必要調達額を算出', start: '2026-03-04', end: '2026-03-04' },
+      { name: '調達手段の候補整理', start: '2026-03-04', end: '2026-03-04' },
+      { name: '申請書類リスト作成', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'PL・BSをfreeeから出力', start: '2026-03-04', end: '2026-03-04' },
+    ]},
+
+  // 今週
+  { sec: 'week', cat: 'finance', name: '税理士からの質問対応', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: 'freeeからデータ抽出', start: '2026-03-04', end: '2026-03-05' },
+      { name: '質問リスト確認・整理', start: '2026-03-05', end: '2026-03-06' },
+      { name: '回答作成・送付', start: '2026-03-06', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'finance', name: '2期分資料格納', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: '銀行入出金明細DL', start: '2026-03-04', end: '2026-03-05' },
+      { name: 'UPSIDER履歴エクスポート', start: '2026-03-05', end: '2026-03-06' },
+      { name: 'フォルダ整理・格納', start: '2026-03-06', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'flycka', name: 'Meta広告運用（週次）', start: '2026-03-04', end: '2026-03-31', status: '継続', recurring: true,
+    subs: [
+      { name: '配信実績確認', start: '2026-03-07', end: '2026-03-07' },
+      { name: '低パフォーマンス特定', start: '2026-03-07', end: '2026-03-07' },
+      { name: '改善施策実行', start: '2026-03-07', end: '2026-03-07' },
+      { name: '予算配分決定', start: '2026-03-07', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'flycka', name: 'レポート修正', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: '問題点洗い出し', start: '2026-03-04', end: '2026-03-05' },
+      { name: '修正版作成', start: '2026-03-05', end: '2026-03-06' },
+      { name: '動作確認', start: '2026-03-06', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'flycka', name: 'ダッシュボード修正', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: '問題点洗い出し', start: '2026-03-04', end: '2026-03-05' },
+      { name: '修正版作成', start: '2026-03-05', end: '2026-03-06' },
+      { name: '動作確認', start: '2026-03-06', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'sales', name: 'OP稼働予定確認', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: 'スケジュール確認', start: '2026-03-04', end: '2026-03-05' },
+      { name: 'シフト表更新', start: '2026-03-05', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'sales', name: '稼働リソース確認', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: '稼働可能人数把握', start: '2026-03-04', end: '2026-03-05' },
+      { name: '必要リソース算出', start: '2026-03-05', end: '2026-03-06' },
+      { name: '不足時の対応検討', start: '2026-03-06', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'sales', name: 'アジピク：稼働開始', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: '案件確認', start: '2026-03-04', end: '2026-03-05' },
+      { name: 'リスト準備', start: '2026-03-05', end: '2026-03-06' },
+      { name: 'TS作成', start: '2026-03-06', end: '2026-03-06' },
+      { name: 'OP割当・稼働', start: '2026-03-07', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'sales', name: 'hypex：停止判断', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+    subs: [
+      { name: '定例後に判断', start: '2026-03-06', end: '2026-03-07' },
+      { name: 'クライアント連絡', start: '2026-03-07', end: '2026-03-07' },
+    ]},
+  { sec: 'week', cat: 'sales', name: 'クリエーション・ビュー定例資料', start: '2026-03-07', end: '2026-03-10', status: '未着手',
+    subs: [
+      { name: '実績データ集計', start: '2026-03-07', end: '2026-03-07' },
+      { name: '資料反映', start: '2026-03-07', end: '2026-03-10' },
+      { name: '提出', start: '2026-03-10', end: '2026-03-10' },
+    ]},
+
+  // 来週
+  { sec: 'next', cat: 'finance', name: '資金調達：申請実行', start: '2026-03-10', end: '2026-03-14', status: '未着手',
+    subs: [
+      { name: '申請先絞り込み', start: '2026-03-10', end: '2026-03-11' },
+      { name: '書類準備', start: '2026-03-11', end: '2026-03-13' },
+      { name: '申請手続き', start: '2026-03-13', end: '2026-03-14' },
+    ]},
+  { sec: 'next', cat: 'finance', name: 'D2C資金繰り管理リサーチ', start: '2026-03-10', end: '2026-03-14', status: '未着手',
+    subs: [
+      { name: '資金フロー可視化', start: '2026-03-10', end: '2026-03-11' },
+      { name: 'ツール調査', start: '2026-03-11', end: '2026-03-13' },
+      { name: '適用案まとめ', start: '2026-03-13', end: '2026-03-14' },
+    ]},
+  { sec: 'next', cat: 'flycka', name: 'クリエイティブ恒久オペ化', start: '2026-03-10', end: '2026-03-14', status: '未着手',
+    subs: [
+      { name: '制作パターン棚卸し', start: '2026-03-10', end: '2026-03-10' },
+      { name: 'テンプレ化（Canva/ブリーフ）', start: '2026-03-10', end: '2026-03-11' },
+      { name: '外注先選定・テスト発注', start: '2026-03-11', end: '2026-03-12' },
+      { name: '標準フロー文書化', start: '2026-03-12', end: '2026-03-13' },
+      { name: '週次制作サイクル設計', start: '2026-03-13', end: '2026-03-14' },
+    ]},
+  { sec: 'next', cat: 'flycka', name: 'インフルエンサー：アプローチ実行', start: '2026-03-10', end: '2026-03-14', status: '未着手',
+    subs: [
+      { name: 'DM送付', start: '2026-03-10', end: '2026-03-11' },
+      { name: '返信対応・条件交渉', start: '2026-03-11', end: '2026-03-13' },
+      { name: '初回案件確定', start: '2026-03-13', end: '2026-03-14' },
+    ]},
+  { sec: 'next', cat: 'flycka', name: 'TikTok Shop検討', start: '2026-03-10', end: '2026-03-14', status: '未着手',
+    subs: [
+      { name: '出店要件調査', start: '2026-03-10', end: '2026-03-11' },
+      { name: '競合状況確認', start: '2026-03-11', end: '2026-03-13' },
+      { name: '判断材料まとめ', start: '2026-03-13', end: '2026-03-14' },
+    ]},
+  { sec: 'next', cat: 'flycka', name: 'ロジ関連（野村）', start: '2026-03-04', end: '2026-03-31', status: '別todo参照', subs: [] },
+
+  // 今月後半
+  { sec: 'later', cat: 'finance', name: '経営管理自動化', start: '2026-03-17', end: '2026-03-21', status: '未着手',
+    subs: [
+      { name: '手動プロセス洗い出し', start: '2026-03-17', end: '2026-03-18' },
+      { name: '自動化対象特定', start: '2026-03-18', end: '2026-03-19' },
+      { name: 'ツール選定', start: '2026-03-19', end: '2026-03-20' },
+      { name: '実装・テスト', start: '2026-03-20', end: '2026-03-21' },
+    ]},
+
+  // 保留
+  { sec: 'hold', cat: 'sales', name: 'GMOサイン：リスト作成', start: '2026-03-04', end: '2026-03-04', status: '保留', hold: true, subs: [] },
+  { sec: 'hold', cat: 'sales', name: 'GMOサイン：TS作成', start: '2026-03-04', end: '2026-03-04', status: '保留', hold: true, subs: [] },
+];
+
+function d(s) { return new Date(s + 'T00:00:00'); }
+function dayIdx(date) { return Math.round((new Date(date) - START) / 86400000); }
+function isWeekend(date) { const dow = date.getDay(); return dow === 0 || dow === 6; }
+function fmtDate(date) { return `${date.getMonth()+1}/${date.getDate()}（${DOW[date.getDay()]}）`; }
+
+function addTodayLine(cell) {
+  const idx = dayIdx(TODAY);
+  if (idx >= 0 && idx < DAYS.length) {
+    const line = document.createElement('div');
+    line.className = 'today-line';
+    line.style.left = (idx * CELL + CELL / 2) + 'px';
+    cell.appendChild(line);
+  }
+}
+
+function showTooltip(e, title, startD, endD, status, subs) {
+  const tt = document.getElementById('tooltip');
+  let subsHtml = subs && subs.length > 0 ? '<div style="margin-top:8px;border-top:1px solid #d5d0c5;padding-top:6px">' +
+    subs.map(s => `<div style="margin-top:2px">☐ ${s.name}</div>`).join('') + '</div>' : '';
+  tt.innerHTML = `<div class="tt-title">${title}</div>` +
+    `<div class="tt-row"><span class="tt-label">期間:</span><span>${fmtDate(startD)} → ${fmtDate(endD)}</span></div>` +
+    `<div class="tt-row"><span class="tt-label">ステータス:</span><span>${status}</span></div>` + subsHtml;
+  tt.style.display = 'block';
+  tt.style.left = (e.clientX + 12) + 'px';
+  tt.style.top = (e.clientY - 10) + 'px';
+}
+
+const table = document.getElementById('gantt');
+
+// Header
+let hdr1 = '<tr><th style="min-width:260px">タスク</th>';
+let hdr2 = '<tr><th></th>';
+DAYS.forEach(day => {
+  const isToday = day.getTime() === TODAY.getTime();
+  const we = isWeekend(day);
+  const cls = [isToday ? 'today' : '', we ? 'weekend-header' : ''].filter(Boolean).join(' ');
+  hdr1 += `<th class="date-header ${cls}">${day.getDate()}</th>`;
+  hdr2 += `<th class="date-header ${cls}" style="font-weight:400">${DOW[day.getDay()]}</th>`;
+});
+table.innerHTML = hdr1 + '</tr>' + hdr2 + '</tr>';
+
+// Render
+let currentSec = '';
+tasks.forEach(task => {
+  // Section header
+  if (task.sec !== currentSec) {
+    currentSec = task.sec;
+    const secInfo = sections.find(s => s.id === currentSec);
+    const secRow = document.createElement('tr');
+    secRow.className = 'section-row';
+    secRow.innerHTML = `<td colspan="${DAYS.length + 1}">${secInfo.label}</td>`;
+    table.appendChild(secRow);
+  }
+
+  const startD = d(task.start);
+  const endD = d(task.end);
+
+  // Parent row
+  const row = document.createElement('tr');
+  const labelCell = document.createElement('td');
+  labelCell.className = 'task-label';
+  const badge = task.hold ? ' <span style="color:#9ca3af;font-size:11px">⏸</span>' :
+                task.recurring ? ' <span style="color:#6366f1;font-size:11px">🔄</span>' :
+                task.today ? ' <span style="color:#dc2626;font-size:11px;font-weight:700">TODAY</span>' : '';
+  labelCell.innerHTML = `<div class="name">${task.name}${badge}</div><div class="date">${fmtDate(startD)} → ${fmtDate(endD)}</div>`;
+  row.appendChild(labelCell);
+
+  const timeCell = document.createElement('td');
+  timeCell.colSpan = DAYS.length;
+  timeCell.className = 'timeline-cell';
+  timeCell.style.position = 'relative';
+
+  const si = dayIdx(startD), ei = dayIdx(endD);
+  const bar = document.createElement('div');
+  bar.className = 'bar';
+  if (task.done) bar.className += ' bar-done';
+  else if (task.hold) bar.className += ' bar-hold hold';
+  else if (task.today) bar.className += ' bar-today';
+  else if (task.recurring) bar.className += ' bar-recurring';
+  else bar.className += ` bar-${task.cat}`;
+  bar.style.left = Math.max(0, si) * CELL + 'px';
+  bar.style.width = Math.max((ei - Math.max(0, si) + 1) * CELL - 4, 8) + 'px';
+
+  bar.addEventListener('mouseenter', e => showTooltip(e, task.name, startD, endD, task.status, task.subs));
+  bar.addEventListener('mousemove', e => { const tt = document.getElementById('tooltip'); tt.style.left = (e.clientX+12)+'px'; tt.style.top = (e.clientY-10)+'px'; });
+  bar.addEventListener('mouseleave', () => document.getElementById('tooltip').style.display = 'none');
+
+  timeCell.appendChild(bar);
+  addTodayLine(timeCell);
+  row.appendChild(timeCell);
+  table.appendChild(row);
+
+  // Sub-task rows
+  if (task.subs && task.subs.length > 0) {
+    task.subs.forEach(sub => {
+      const subRow = document.createElement('tr');
+      subRow.className = 'sub-row';
+
+      const subLabel = document.createElement('td');
+      subLabel.className = 'sub-label';
+      subLabel.innerHTML = `<span class="sub-name">└ ${sub.name}</span>`;
+      subRow.appendChild(subLabel);
+
+      const subTime = document.createElement('td');
+      subTime.colSpan = DAYS.length;
+      subTime.className = 'sub-timeline';
+      subTime.style.position = 'relative';
+
+      const subStart = d(sub.start), subEnd = d(sub.end);
+      const ssi = dayIdx(subStart), sei = dayIdx(subEnd);
+      const subBar = document.createElement('div');
+      subBar.className = 'sub-bar';
+      if (task.today) subBar.className += ' sub-bar-today';
+      else subBar.className += ` sub-bar-${task.cat}`;
+      subBar.style.left = Math.max(0, ssi) * CELL + 'px';
+      subBar.style.width = Math.max((sei - Math.max(0, ssi) + 1) * CELL - 4, 4) + 'px';
+
+      subTime.appendChild(subBar);
+      addTodayLine(subTime);
+      subRow.appendChild(subTime);
+      table.appendChild(subRow);
+    });
+  }
+});
+</script>
+</body>
+</html>
