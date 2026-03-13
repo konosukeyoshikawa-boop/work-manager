@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>プロジェクト構成マップ — 2026-03-13</title>
+<title>プロジェクト構成マップ — 2026-03-14</title>
 <style>
   :root {
     --bg: #faf9f6;
@@ -82,13 +82,14 @@
   .tree details { margin-left: 1.2rem; }
   .tree summary { list-style: none; }
   .tree summary::-webkit-details-marker { display: none; }
-  .tree summary::before { content: '▸ '; color: var(--accent1); }
-  .tree details[open] > summary::before { content: '▾ '; }
+  .tree summary::before { content: '&#9656; '; color: var(--accent1); }
+  .tree details[open] > summary::before { content: '&#9662; '; }
   .tree .leaf { margin-left: 1.2rem; padding-left: .6rem; border-left: 1px solid var(--border); }
   .status { font-size: .7rem; padding: 1px 6px; border-radius: 3px; margin-left: .4rem; }
   .status-active { background: #e6f4ea; color: #1e7e34; }
   .status-stub { background: #fff3cd; color: #856404; }
   .status-new { background: #e8f0fe; color: #1a56db; }
+  .status-gone { background: #f8d7da; color: #721c24; }
 
   /* Overlap section */
   .overlap {
@@ -124,58 +125,195 @@
   .config-table .status-off { color: #aaa; }
 
   footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+  /* Feature catalog */
+  .feat-section {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem 1.8rem; margin-bottom: 1.2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .feat-section h3 {
+    font-size: 1.05rem; margin-bottom: .2rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .feat-section .feat-sub { color: var(--muted); font-size: .8rem; margin-bottom: .8rem; }
+  .feat-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: .6rem;
+  }
+  .feat-card {
+    display: flex; gap: .6rem; padding: .6rem .8rem;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); align-items: flex-start;
+    transition: box-shadow .15s;
+  }
+  .feat-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+  .feat-num {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .65rem; font-weight: 700; color: #fff; margin-top: 1px;
+  }
+  .feat-body { flex: 1; }
+  .feat-title { font-size: .82rem; font-weight: 600; line-height: 1.3; }
+  .feat-desc { font-size: .75rem; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+  .feat-divider {
+    grid-column: 1 / -1; font-size: .78rem; font-weight: 600;
+    color: var(--muted); padding: .4rem 0 .1rem; border-bottom: 1px solid var(--border);
+  }
+  .feat-count {
+    display: inline-block; background: var(--tag-dir); padding: 2px 10px;
+    border-radius: 12px; font-size: .72rem; font-weight: 600; color: var(--muted);
+    margin-left: .5rem;
+  }
+
+  /* Data flow architecture */
+  .arch-wrap {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem 1.8rem; margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .arch-wrap h2 { font-size: 1.15rem; margin-bottom: .2rem; }
+  .arch-wrap .arch-sub { font-size: .82rem; color: var(--muted); margin-bottom: 1.2rem; }
+  .arch-tier {
+    display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center;
+    padding: .6rem 0;
+  }
+  .arch-tier-label {
+    width: 100%; text-align: center; font-size: .72rem; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: .2rem;
+  }
+  .arch-node {
+    padding: .35rem .7rem; border-radius: 6px; font-size: .78rem; font-weight: 500;
+    text-align: center; white-space: nowrap;
+  }
+  .arch-node.src { background: #f0f4f8; border: 1px solid #b0bec5; color: #37474f; }
+  .arch-node.ai { background: #fff0f0; border: 1px solid #e0a0a0; color: #8a3b3b; }
+  .arch-node.proj {
+    padding: .5rem 1rem; border-radius: 8px; font-weight: 700; font-size: .85rem;
+    border-width: 2px; border-style: solid; min-width: 140px;
+  }
+  .arch-node.proj.g { background: #f5faf6; border-color: var(--accent1); color: var(--accent1); }
+  .arch-node.proj.p { background: #f5f3fa; border-color: var(--accent2); color: var(--accent2); }
+  .arch-node.proj.t { background: #f0fafa; border-color: var(--accent4); color: var(--accent4); }
+  .arch-node.proj.a { background: #faf8f0; border-color: var(--accent3); color: var(--accent3); }
+  .arch-node.out { background: #f5f5f5; border: 1px solid #ccc; color: #555; }
+  .arch-arrows {
+    text-align: center; color: var(--muted); font-size: 1.1rem; letter-spacing: 2rem;
+    padding: .2rem 0; line-height: 1;
+  }
+  .arch-legend {
+    display: flex; gap: 1.2rem; flex-wrap: wrap; justify-content: center;
+    margin-top: .8rem; font-size: .72rem; color: var(--muted);
+  }
+  .arch-legend span::before {
+    content: ''; display: inline-block; width: 10px; height: 10px;
+    border-radius: 2px; margin-right: 4px; vertical-align: middle;
+  }
+  .arch-legend .lg::before { background: var(--accent1); }
+  .arch-legend .lp::before { background: var(--accent2); }
+  .arch-legend .lt::before { background: var(--accent4); }
+  .arch-legend .la::before { background: var(--accent3); }
+
+  /* Pipeline cards */
+  .pipe-wrap { margin-bottom: 1.5rem; }
+  .pipe-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.4rem; margin-bottom: .8rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .pipe-card h4 {
+    font-size: .92rem; margin-bottom: .5rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .pipe-badge {
+    display: inline-block; padding: 1px 8px; border-radius: 3px;
+    font-size: .65rem; font-weight: 600; color: #fff;
+  }
+  .pipe-flow {
+    display: flex; align-items: center; gap: .3rem; flex-wrap: wrap;
+    padding: .5rem .8rem; background: var(--bg); border-radius: 6px;
+    font-size: .78rem; margin-bottom: .5rem;
+  }
+  .pipe-box {
+    padding: .25rem .6rem; border-radius: 5px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--card); white-space: nowrap;
+  }
+  .pipe-box.ext { background: #f0f4f8; border-color: #b0bec5; }
+  .pipe-box.int { font-weight: 600; }
+  .pipe-box.store { background: #fffbe6; border-color: #e0d68a; }
+  .pipe-box.out { background: #f5f5f5; border-color: #ccc; }
+  .pipe-arr { color: var(--muted); font-weight: 700; font-size: .9rem; flex-shrink: 0; }
+  .pipe-meta {
+    display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: .75rem; color: var(--muted);
+  }
+  .pipe-meta dt { font-weight: 600; display: inline; }
+  .pipe-meta dd { display: inline; margin: 0; }
+
+  /* Connection matrix */
+  .conn-matrix { width: 100%; border-collapse: collapse; font-size: .78rem; margin-top: .5rem; }
+  .conn-matrix th {
+    text-align: center; padding: .4rem .3rem; border-bottom: 2px solid var(--border);
+    font-weight: 600; color: var(--muted); font-size: .72rem;
+  }
+  .conn-matrix th:first-child { text-align: left; }
+  .conn-matrix td { text-align: center; padding: .35rem .3rem; border-bottom: 1px solid #eee; }
+  .conn-matrix td:first-child { text-align: left; font-weight: 500; }
+  .conn-dot { font-size: .9rem; }
+  .conn-r { color: var(--accent1); } /* read */
+  .conn-w { color: var(--accent2); } /* write */
+  .conn-rw { color: var(--accent6); } /* read+write */
 </style>
 </head>
 <body>
 
 <h1>プロジェクト構成マップ</h1>
-<p class="subtitle">C:\Users\paul1\ &mdash; 最終更新: 2026-03-13</p>
+<p class="subtitle">C:\Users\paul1\ &mdash; 最終更新: 2026-03-14</p>
 
 <!-- ==================== Overview Cards ==================== -->
 <div class="overview">
   <div class="overview-card">
     <h2><span class="dot dot-green"></span> meta-ad-analyzer <span class="tag tag-py">Python</span></h2>
-    <p class="desc">Meta広告運用自動化 &mdash; API取得・AI仮説生成・DOCX/PDF/HTMLレポート・Slack通知・クリエイティブ戦略</p>
+    <p class="desc">Meta広告運用自動化 &mdash; API取得・AI仮説生成・DOCX/PDF/HTMLレポート・Slack通知・クリエイティブ生成・競合監視</p>
     <div class="meta-row">
-      <span>~180 files</span>
+      <span>~186 files</span>
       <span>SQLite + Meta API + Sheets + Shopify</span>
       <span>CI: GitHub Actions</span>
     </div>
   </div>
   <div class="overview-card">
     <h2><span class="dot dot-purple"></span> backoffice <span class="tag tag-py">Python</span><span class="tag tag-ts">TS</span></h2>
-    <p class="desc">バックオフィス自動化 &mdash; freee連携・自動仕訳・資金繰り・領収書収集・財務分析</p>
+    <p class="desc">バックオフィス自動化 &mdash; freee連携・自動仕訳・資金繰り・領収書収集・財務分析・ダッシュボード</p>
     <div class="meta-row">
-      <span>~230 files</span>
+      <span>~240 files</span>
       <span>freee API (MCP + REST)</span>
-      <span>Google Sheets</span>
+      <span>Google Sheets + Shopify</span>
     </div>
   </div>
   <div class="overview-card">
     <h2><span class="dot dot-amber"></span> work-manager <span class="tag tag-md">Markdown+HTML</span></h2>
-    <p class="desc">PM・経営参謀 &mdash; タスク管理・ガントチャート・イグジット戦略・達成計画・FLYCKA戦略文書</p>
+    <p class="desc">PM・経営参謀 &mdash; タスク管理・ガントチャート・イグジット戦略・達成計画・FLYCKA越境EC戦略・意思決定ログ</p>
     <div class="meta-row">
-      <span>~15 files</span>
+      <span>~20 files</span>
       <span>todo.md + gantt.html + goal-plan.html</span>
       <span>Claude Code駆動</span>
     </div>
   </div>
   <div class="overview-card">
     <h2><span class="dot dot-teal"></span> creative-pipeline <span class="tag tag-py">Python</span></h2>
-    <p class="desc">広告クリエイティブ画像合成 &mdash; 背景差替・合成・季節バッチ（FLYCKA向け）</p>
+    <p class="desc">広告クリエイティブ画像合成 &mdash; 背景差替・合成・季節バッチ・ハイブリッド合成（FLYCKA向け）</p>
     <div class="meta-row">
-      <span>~8 files</span>
-      <span>OpenAI API + Stability AI</span>
+      <span>~33 files</span>
+      <span>OpenAI + Stability AI + rembg</span>
       <span>Pillow + httpx</span>
     </div>
   </div>
-  <div class="overview-card">
-    <h2><span class="dot dot-blue"></span> tech-news-digest <span class="tag tag-py">Python</span></h2>
+  <div class="overview-card" style="opacity:.5">
+    <h2><span class="dot dot-blue"></span> tech-news-digest <span class="tag tag-py">Python</span> <span class="status status-gone">未検出</span></h2>
     <p class="desc">技術ニュース自動収集 &mdash; HN/Reddit/RSS/Twitter収集・Claude AI要約・Slack配信</p>
     <div class="meta-row">
-      <span>~20 files</span>
-      <span>Anthropic SDK + Slack API</span>
-      <span>SQLite + pytest</span>
+      <span>ディレクトリ不在</span>
+      <span>未初期化 or 移動済み</span>
     </div>
   </div>
   <div class="overview-card">
@@ -183,11 +321,699 @@
     <p class="desc">全プロジェクト共通ルール &mdash; コーディング規約・Phase駆動ワークフロー・品質ゲート・振り返り学習</p>
     <div class="meta-row">
       <span>CLAUDE.md + Rules 3件</span>
-      <span>Skills 0件 / Commands 0件</span>
-      <span>Plugins 未有効化</span>
+      <span>Commands 1件 (morning)</span>
+      <span>Memory 6件</span>
     </div>
   </div>
 </div>
+
+<!-- ==================== Feature Catalog ==================== -->
+<h2 style="font-size:1.3rem; margin-bottom:.3rem;">できること一覧</h2>
+<p class="subtitle" style="margin-bottom:1.2rem;">各プロジェクトの機能を分かりやすくまとめたリスト &mdash; 全45機能</p>
+
+<!-- meta-ad-analyzer features -->
+<div class="feat-section">
+  <h3><span class="dot dot-green"></span> meta-ad-analyzer &mdash; Meta広告の運用を自動化 <span class="feat-count">11機能</span></h3>
+  <p class="feat-sub">広告データの取得からレポート作成・改善提案・競合分析まで、広告運用に必要な作業を自動化</p>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">1</span>
+      <div class="feat-body">
+        <div class="feat-title">広告データの自動取得</div>
+        <div class="feat-desc">Meta広告の配信データ（費用・クリック・売上など）を毎日自動で取得・保存</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">2</span>
+      <div class="feat-body">
+        <div class="feat-title">日次レポートの自動生成</div>
+        <div class="feat-desc">前日の広告成績をWord/HTML/PDFで自動レポート化。9つの分析セクション付き</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">3</span>
+      <div class="feat-body">
+        <div class="feat-title">月次パフォーマンスレポート</div>
+        <div class="feat-desc">月間の広告成績を10セクションで自動分析。週別・広告セット別・ファネル分析</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">4</span>
+      <div class="feat-body">
+        <div class="feat-title">AIによる改善提案</div>
+        <div class="feat-desc">Claude AIが広告データを分析し、最大5つの改善仮説を自動提案（確信度・推定ROI付き）</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">5</span>
+      <div class="feat-body">
+        <div class="feat-title">広告の異常検知</div>
+        <div class="feat-desc">ROAS急落・CPM高騰・クリエイティブ疲労などを自動検出してアラート</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">6</span>
+      <div class="feat-body">
+        <div class="feat-title">Slack通知</div>
+        <div class="feat-desc">レポート完成・重要アラートをSlackに自動通知。毎日7:30に定期配信</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">7</span>
+      <div class="feat-body">
+        <div class="feat-title">HTMLダッシュボード</div>
+        <div class="feat-desc">ブラウザで見れるインタラクティブなダッシュボード。サーバー不要の単一ファイル</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">8</span>
+      <div class="feat-body">
+        <div class="feat-title">競合広告の自動監視</div>
+        <div class="feat-desc">競合4ブランドのFacebook広告を自動収集し、新しい広告や変更を検出</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">9</span>
+      <div class="feat-body">
+        <div class="feat-title">広告画像の自動生成</div>
+        <div class="feat-desc">商品画像からAIで広告画像を自動生成。Feed/Story/Display の3サイズ対応</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">10</span>
+      <div class="feat-body">
+        <div class="feat-title">Shopifyデータ連携</div>
+        <div class="feat-desc">Shopifyの注文・原価データと広告データを突合して、本当の利益を分析</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent1)">11</span>
+      <div class="feat-body">
+        <div class="feat-title">クラウドにアップロード</div>
+        <div class="feat-desc">ダッシュボードをGoogle Cloud Storageに自動アップロード。URLを共有して閲覧可能</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- backoffice features -->
+<div class="feat-section">
+  <h3><span class="dot dot-purple"></span> backoffice &mdash; 経理・財務の自動化 <span class="feat-count">17機能</span></h3>
+  <p class="feat-sub">freee連携・自動仕訳・資金繰り管理・領収書収集など、バックオフィス業務を幅広く自動化</p>
+  <div class="feat-grid">
+    <div class="feat-divider">freee連携（MCP Server）</div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">12</span>
+      <div class="feat-body">
+        <div class="feat-title">freee APIの全操作</div>
+        <div class="feat-desc">Claude Codeから会話形式でfreeeの取引登録・残高確認・仕訳作成などが可能</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">13</span>
+      <div class="feat-body">
+        <div class="feat-title">5つのfreeeサービス対応</div>
+        <div class="feat-desc">会計・人事労務・請求書・工数管理・販売管理のAPI全てに対応</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">14</span>
+      <div class="feat-body">
+        <div class="feat-title">80+のAPIリファレンス</div>
+        <div class="feat-desc">操作ガイド付きで「こうやればできる」がすぐ分かるレシピ集</div>
+      </div>
+    </div>
+    <div class="feat-divider">自動仕訳</div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">15</span>
+      <div class="feat-body">
+        <div class="feat-title">銀行明細→仕訳の自動変換</div>
+        <div class="feat-desc">銀行・カードの入出金明細をルールベースで自動仕訳。200+ルール対応</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">16</span>
+      <div class="feat-body">
+        <div class="feat-title">ドライラン（予行演習）</div>
+        <div class="feat-desc">本番登録前に「こう仕訳されます」を確認できる安全機能</div>
+      </div>
+    </div>
+    <div class="feat-divider">資金繰り管理</div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">17</span>
+      <div class="feat-body">
+        <div class="feat-title">日次の残高・入出金追跡</div>
+        <div class="feat-desc">freee・銀行・UPSIDERの残高と入出金を毎日自動取得して記録</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">18</span>
+      <div class="feat-body">
+        <div class="feat-title">資金ショートのアラート</div>
+        <div class="feat-desc">手元資金が100万円以下で危険、300万円以下で警告を自動判定</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">19</span>
+      <div class="feat-body">
+        <div class="feat-title">残高予測（6週間先）</div>
+        <div class="feat-desc">過去の入出金パターンから今後42日間の残高を自動予測</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">20</span>
+      <div class="feat-body">
+        <div class="feat-title">Google Sheets自動更新</div>
+        <div class="feat-desc">銀行入出金・UPSIDER明細・Shopify入金を専用シートに自動書き込み</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">21</span>
+      <div class="feat-body">
+        <div class="feat-title">Shopify入金の自動取得</div>
+        <div class="feat-desc">Shopifyからの入金予定・入金済みデータを自動取得して資金繰りに反映</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">22</span>
+      <div class="feat-body">
+        <div class="feat-title">事業別PL（損益計算書）</div>
+        <div class="feat-desc">D2C / BPO / コンサル別に売上・費用・利益を自動集計</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">23</span>
+      <div class="feat-body">
+        <div class="feat-title">資金繰りダッシュボード</div>
+        <div class="feat-desc">資金繰りの状況をブラウザで一覧表示。ヒートマップ付き5画面構成</div>
+      </div>
+    </div>
+    <div class="feat-divider">領収書の自動収集</div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">24</span>
+      <div class="feat-body">
+        <div class="feat-title">18サービスの領収書を自動取得</div>
+        <div class="feat-desc">Meta広告・Shopify・Slack・OpenAI等の領収書メールをGmailから自動検出</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">25</span>
+      <div class="feat-body">
+        <div class="feat-title">freeeへの自動アップロード</div>
+        <div class="feat-desc">取得した領収書PDFをfreeeのファイルボックスに自動登録</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">26</span>
+      <div class="feat-body">
+        <div class="feat-title">カード明細との自動紐付け</div>
+        <div class="feat-desc">領収書をUPSIDERカードの利用明細と自動マッチング</div>
+      </div>
+    </div>
+    <div class="feat-divider">レポート生成</div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">27</span>
+      <div class="feat-body">
+        <div class="feat-title">財務分析レポート</div>
+        <div class="feat-desc">freeeのデータから財務分析レポートをHTML/PDFで自動生成</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent2)">28</span>
+      <div class="feat-body">
+        <div class="feat-title">銀行入出金分析</div>
+        <div class="feat-desc">月次の入出金を分析しPDF出力。グラフ5枚付き</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- work-manager features -->
+<div class="feat-section">
+  <h3><span class="dot dot-amber"></span> work-manager &mdash; 経営の司令塔 <span class="feat-count">8機能</span></h3>
+  <p class="feat-sub">タスク管理・戦略立案・意思決定記録など、経営者の右腕として機能</p>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">29</span>
+      <div class="feat-body">
+        <div class="feat-title">タスク管理（todo.md）</div>
+        <div class="feat-desc">全事業のタスクを一元管理。優先度・期日・カテゴリで分類。遅延タスクを自動警告</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">30</span>
+      <div class="feat-body">
+        <div class="feat-title">朝のブリーフィング</div>
+        <div class="feat-desc">/morning コマンドで、タスク状況・freee残高・広告KPIを一括確認</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">31</span>
+      <div class="feat-body">
+        <div class="feat-title">ガントチャート</div>
+        <div class="feat-desc">todo.mdと自動連動したガントチャート。期日と進捗を視覚的に把握</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">32</span>
+      <div class="feat-body">
+        <div class="feat-title">イグジット達成計画</div>
+        <div class="feat-desc">「2026年12月に3億円で株式売却」の目標をロジックツリーで可視化</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">33</span>
+      <div class="feat-body">
+        <div class="feat-title">事業戦略文書の管理</div>
+        <div class="feat-desc">3億円イグジット戦略・月利800万計画・越境EC戦略を一元管理</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">34</span>
+      <div class="feat-body">
+        <div class="feat-title">意思決定ログ</div>
+        <div class="feat-desc">重要な経営判断を「背景→選択肢→判断理由→次のアクション」で記録</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">35</span>
+      <div class="feat-body">
+        <div class="feat-title">プロジェクト構成マップ</div>
+        <div class="feat-desc">全プロジェクトの構造・機能を俯瞰できるHTML（このファイル）</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent3)">36</span>
+      <div class="feat-body">
+        <div class="feat-title">コンサルティング・プレイブック</div>
+        <div class="feat-desc">営業・コンサルの進め方をまとめたプレイブック</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- creative-pipeline features -->
+<div class="feat-section">
+  <h3><span class="dot dot-teal"></span> creative-pipeline &mdash; 広告画像の自動生成 <span class="feat-count">4機能</span> <span class="status status-stub">実験中</span></h3>
+  <p class="feat-sub">FLYCKAの商品画像から、背景を差し替えた広告用クリエイティブを自動生成</p>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent4)">37</span>
+      <div class="feat-body">
+        <div class="feat-title">背景の自動差し替え</div>
+        <div class="feat-desc">商品モデル画像の背景をAIで別の場所（桜・ビーチ・ホテル等）に差し替え</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent4)">38</span>
+      <div class="feat-body">
+        <div class="feat-title">季節別バリエーション一括生成</div>
+        <div class="feat-desc">春・夏・秋・冬・夜の5パターンを一括で自動生成</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent4)">39</span>
+      <div class="feat-body">
+        <div class="feat-title">ハイブリッド合成</div>
+        <div class="feat-desc">元の商品画像を100%保ったまま、背景だけAIで差し替える高品質方式</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent4)">40</span>
+      <div class="feat-body">
+        <div class="feat-title">4つの生成方式を比較検証</div>
+        <div class="feat-desc">OpenAI / DALL-E+合成 / Stability AI / ハイブリッドの4方式を検証済み</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Claude Code global features -->
+<div class="feat-section">
+  <h3><span class="dot dot-rose"></span> Claude Code グローバル設定 &mdash; 全プロジェクト共通の仕組み <span class="feat-count">5機能</span></h3>
+  <p class="feat-sub">プロジェクトを横断して品質と効率を担保する共通フレームワーク</p>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent6)">41</span>
+      <div class="feat-body">
+        <div class="feat-title">統一コーディング規約</div>
+        <div class="feat-desc">型ヒント必須・テスト必須・ログ出力のルールを全プロジェクトで統一</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent6)">42</span>
+      <div class="feat-body">
+        <div class="feat-title">Phase駆動ワークフロー</div>
+        <div class="feat-desc">3工程以上のタスクを自動的にPhase管理。中断しても次セッションで再開可能</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent6)">43</span>
+      <div class="feat-body">
+        <div class="feat-title">品質ゲート</div>
+        <div class="feat-desc">成果物を「機械チェック→AIレビュー」の2段階で自動検証。不合格は4タイプに分類</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent6)">44</span>
+      <div class="feat-body">
+        <div class="feat-title">学習の自動蓄積</div>
+        <div class="feat-desc">過去の失敗・教訓をMemoryに記録し、次のセッションで自動的に活用</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-num" style="background:var(--accent6)">45</span>
+      <div class="feat-body">
+        <div class="feat-title">Meta広告の最新情報チェック</div>
+        <div class="feat-desc">Meta広告に関する質問には必ずWeb検索して最新仕様を確認してから回答</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Data Flow Architecture ==================== -->
+<h2 style="font-size:1.3rem; margin: 2rem 0 .3rem;">データ連携構造</h2>
+<p class="subtitle" style="margin-bottom:1.2rem;">プロジェクト間・外部サービス間のデータフロー全体像</p>
+
+<!-- Architecture Overview -->
+<div class="arch-wrap">
+  <h2>全体アーキテクチャ</h2>
+  <p class="arch-sub">外部データソース → プロジェクト（処理・蓄積） → 出力先 の3層構造</p>
+
+  <div class="arch-tier">
+    <div class="arch-tier-label">外部データソース &amp; AI</div>
+    <span class="arch-node src">Meta Marketing API</span>
+    <span class="arch-node src">Shopify API</span>
+    <span class="arch-node src">freee API</span>
+    <span class="arch-node src">Gmail IMAP</span>
+    <span class="arch-node src">UPSIDER CSV</span>
+    <span class="arch-node src">Apify (競合)</span>
+    <span class="arch-node ai">Claude AI</span>
+    <span class="arch-node ai">OpenAI</span>
+    <span class="arch-node ai">Stability AI</span>
+  </div>
+
+  <div class="arch-arrows">&#9660; &#9660; &#9660; &#9660; &#9660;</div>
+
+  <div class="arch-tier">
+    <div class="arch-tier-label">プロジェクト（処理エンジン）</div>
+    <span class="arch-node proj g">meta-ad-analyzer</span>
+    <span class="arch-node proj p">backoffice</span>
+    <span class="arch-node proj a">work-manager</span>
+    <span class="arch-node proj t">creative-pipeline</span>
+  </div>
+
+  <div class="arch-arrows">&#9660; &#9660; &#9660; &#9660; &#9660;</div>
+
+  <div class="arch-tier">
+    <div class="arch-tier-label">出力 &amp; データストア</div>
+    <span class="arch-node out">SQLite (meta_ads.db)</span>
+    <span class="arch-node out">SQLite (competitor_ads.db)</span>
+    <span class="arch-node out">Google Sheets</span>
+    <span class="arch-node out">freee (仕訳・証憑)</span>
+    <span class="arch-node out">GCS (レポート)</span>
+    <span class="arch-node out">Slack通知</span>
+    <span class="arch-node out">HTMLダッシュボード</span>
+    <span class="arch-node out">広告用画像</span>
+  </div>
+
+  <div class="arch-legend">
+    <span class="lg">meta-ad-analyzer</span>
+    <span class="lp">backoffice</span>
+    <span class="la">work-manager</span>
+    <span class="lt">creative-pipeline</span>
+  </div>
+</div>
+
+<!-- Pipeline detail cards -->
+<div class="pipe-wrap">
+  <h2 style="font-size:1.15rem; margin-bottom:.8rem;">主要データパイプライン</h2>
+
+  <!-- Pipeline 1: Ad data -->
+  <div class="pipe-card">
+    <h4><span class="pipe-badge" style="background:var(--accent1)">自動</span> 広告データ分析パイプライン</h4>
+    <div class="pipe-flow">
+      <span class="pipe-box ext">Meta Marketing API</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent1)">meta-ad-analyzer</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box store">SQLite (meta_ads.db)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">DOCX/PDF/HTMLレポート</span>
+    </div>
+    <div class="pipe-flow">
+      <span class="pipe-box store">SQLite (meta_ads.db)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent1)">Claude AI (仮説生成)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">Slack / GCS / HTMLダッシュボード</span>
+    </div>
+    <dl class="pipe-meta">
+      <div><dt>取得頻度:</dt> <dd>日次バッチ</dd></div>
+      <div><dt>保持期間:</dt> <dd>SQLiteに全履歴</dd></div>
+      <div><dt>関連DB:</dt> <dd>meta_ads.db (SQLite)</dd></div>
+    </dl>
+  </div>
+
+  <!-- Pipeline 2: Competitor -->
+  <div class="pipe-card">
+    <h4><span class="pipe-badge" style="background:var(--accent1)">自動</span> 競合監視パイプライン</h4>
+    <div class="pipe-flow">
+      <span class="pipe-box ext">Apify (Meta Ad Library)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent1)">meta-ad-analyzer/competitor</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box store">SQLite (competitor_ads.db)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">競合レポート</span>
+    </div>
+    <dl class="pipe-meta">
+      <div><dt>取得頻度:</dt> <dd>定期実行</dd></div>
+      <div><dt>対象:</dt> <dd>競合ブランドのMeta広告クリエイティブ</dd></div>
+    </dl>
+  </div>
+
+  <!-- Pipeline 3: Cashflow -->
+  <div class="pipe-card">
+    <h4><span class="pipe-badge" style="background:var(--accent2)">自動</span> 資金繰り管理パイプライン</h4>
+    <div class="pipe-flow">
+      <span class="pipe-box ext">Shopify API (Payouts)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent2)">backoffice/cashflow</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box store">Google Sheets (資金繰り管理表)</span>
+    </div>
+    <div class="pipe-flow">
+      <span class="pipe-box ext">UPSIDER CSV</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent2)">backoffice (部門自動判定)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box store">Google Sheets (UPSIDER明細)</span>
+    </div>
+    <div class="pipe-flow">
+      <span class="pipe-box store">Google Sheets</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent2)">backoffice/cashflow</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">HTMLダッシュボード (日次/週次/月次)</span>
+    </div>
+    <dl class="pipe-meta">
+      <div><dt>シートID:</dt> <dd style="font-family:monospace;font-size:.72rem">1kfMd5zHiy56t8SVKLU4WfiitUCxLJIGZcIFFzU5DLAY</dd></div>
+      <div><dt>更新:</dt> <dd>Shopify=自動 / UPSIDER=手動取込</dd></div>
+    </dl>
+  </div>
+
+  <!-- Pipeline 4: Accounting -->
+  <div class="pipe-card">
+    <h4><span class="pipe-badge" style="background:var(--accent2)">半自動</span> 経理自動化パイプライン</h4>
+    <div class="pipe-flow">
+      <span class="pipe-box ext">Gmail IMAP (領収書)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent2)">backoffice/receipt</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">freee (証憑アップロード)</span>
+    </div>
+    <div class="pipe-flow">
+      <span class="pipe-box ext">freee API (MCP)</span>
+      <span class="pipe-arr">&harr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent2)">backoffice (freee-mcp)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">freee (自動仕訳)</span>
+    </div>
+    <dl class="pipe-meta">
+      <div><dt>MCP:</dt> <dd>freee-mcp v0.8.1 (TypeScript / Claude Plugin)</dd></div>
+      <div><dt>対応:</dt> <dd>会計・人事労務・請求書・工数管理・販売</dd></div>
+    </dl>
+  </div>
+
+  <!-- Pipeline 5: Creative -->
+  <div class="pipe-card">
+    <h4><span class="pipe-badge" style="background:var(--accent4)">手動起動</span> クリエイティブ制作パイプライン</h4>
+    <div class="pipe-flow">
+      <span class="pipe-box ext">商品画像 (ローカル)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent4)">rembg (背景除去)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent4)">AI画像生成 (背景)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent4)">Pillow (合成)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">広告用画像</span>
+    </div>
+    <dl class="pipe-meta">
+      <div><dt>AI:</dt> <dd>OpenAI / DALL-E / Stability AI / ハイブリッド</dd></div>
+      <div><dt>用途:</dt> <dd>FLYCKA Meta広告クリエイティブ</dd></div>
+    </dl>
+  </div>
+
+  <!-- Pipeline 6: Morning briefing -->
+  <div class="pipe-card">
+    <h4><span class="pipe-badge" style="background:var(--accent3)">コマンド実行</span> 朝ブリーフィングパイプライン</h4>
+    <div class="pipe-flow">
+      <span class="pipe-box store">todo.md (タスク)</span>
+      <span class="pipe-arr">+</span>
+      <span class="pipe-box ext">freee API (MCP)</span>
+      <span class="pipe-arr">+</span>
+      <span class="pipe-box ext">Meta API (KPI)</span>
+    </div>
+    <div class="pipe-flow" style="padding-left: 2rem;">
+      <span class="pipe-arr">&darr;</span>
+      <span class="pipe-box int" style="border-color:var(--accent3)">work-manager (/morning)</span>
+      <span class="pipe-arr">&rarr;</span>
+      <span class="pipe-box out">タスク・資金繰り・KPIの統合レポート</span>
+    </div>
+    <dl class="pipe-meta">
+      <div><dt>起動:</dt> <dd>/morning コマンド (Claude Code)</dd></div>
+      <div><dt>データ:</dt> <dd>3プロジェクトの情報を横断集約</dd></div>
+    </dl>
+  </div>
+</div>
+
+<!-- Cross-project connection matrix -->
+<div class="arch-wrap">
+  <h2>接続マトリクス</h2>
+  <p class="arch-sub">各プロジェクトと外部サービス・データストアの接続関係 &mdash; <span class="conn-dot conn-r">&#9679;</span> 読取 &nbsp; <span class="conn-dot conn-w">&#9679;</span> 書込 &nbsp; <span class="conn-dot conn-rw">&#9679;</span> 双方向</p>
+  <table class="conn-matrix">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Meta API</th>
+        <th>Shopify</th>
+        <th>freee</th>
+        <th>Gmail</th>
+        <th>Apify</th>
+        <th>Google Sheets</th>
+        <th>SQLite</th>
+        <th>GCS</th>
+        <th>Slack</th>
+        <th>AI (Claude等)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>meta-ad-analyzer</strong></td>
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Meta API: read -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Shopify: read (売上突合) -->
+        <td></td><!-- freee -->
+        <td></td><!-- Gmail -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Apify: read -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Sheets: read (KPI) -->
+        <td><span class="conn-dot conn-rw">&#9679;</span></td><!-- SQLite: R/W -->
+        <td><span class="conn-dot conn-w">&#9679;</span></td><!-- GCS: write -->
+        <td><span class="conn-dot conn-w">&#9679;</span></td><!-- Slack: write -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- AI: read (仮説生成) -->
+      </tr>
+      <tr>
+        <td><strong>backoffice</strong></td>
+        <td></td><!-- Meta API -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Shopify: read (Payouts) -->
+        <td><span class="conn-dot conn-rw">&#9679;</span></td><!-- freee: R/W -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Gmail: read -->
+        <td></td><!-- Apify -->
+        <td><span class="conn-dot conn-rw">&#9679;</span></td><!-- Sheets: R/W -->
+        <td></td><!-- SQLite -->
+        <td></td><!-- GCS -->
+        <td></td><!-- Slack -->
+        <td></td><!-- AI -->
+      </tr>
+      <tr>
+        <td><strong>work-manager</strong></td>
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Meta API: read (morning) -->
+        <td></td><!-- Shopify -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- freee: read (MCP) -->
+        <td></td><!-- Gmail -->
+        <td></td><!-- Apify -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- Sheets: read (CF) -->
+        <td></td><!-- SQLite -->
+        <td></td><!-- GCS -->
+        <td></td><!-- Slack -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- AI: read -->
+      </tr>
+      <tr>
+        <td><strong>creative-pipeline</strong></td>
+        <td></td><!-- Meta API -->
+        <td></td><!-- Shopify -->
+        <td></td><!-- freee -->
+        <td></td><!-- Gmail -->
+        <td></td><!-- Apify -->
+        <td></td><!-- Sheets -->
+        <td></td><!-- SQLite -->
+        <td></td><!-- GCS -->
+        <td></td><!-- Slack -->
+        <td><span class="conn-dot conn-r">&#9679;</span></td><!-- AI: read (画像生成) -->
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Cross-project data sharing -->
+<div class="arch-wrap">
+  <h2>プロジェクト間データ共有</h2>
+  <p class="arch-sub">直接連携はないが、Google Sheetsやfreee MCPを介して間接的にデータを共有</p>
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:1rem;">
+
+    <div style="background:var(--bg); border-radius:8px; padding:1rem; border:1px solid var(--border);">
+      <h4 style="font-size:.88rem; margin-bottom:.5rem;">Google Sheets ハブ</h4>
+      <div class="pipe-flow">
+        <span class="pipe-box int" style="border-color:var(--accent2)">backoffice</span>
+        <span class="pipe-arr" style="color:var(--accent2)">書込 &rarr;</span>
+        <span class="pipe-box store">資金繰り管理表</span>
+        <span class="pipe-arr" style="color:var(--accent3)">&larr; 読取</span>
+        <span class="pipe-box int" style="border-color:var(--accent3)">work-manager</span>
+      </div>
+      <p style="font-size:.75rem; color:var(--muted); margin-top:.5rem;">backofficeが書き込んだ資金繰り・UPSIDER明細を、work-managerが朝ブリーフィングで参照</p>
+    </div>
+
+    <div style="background:var(--bg); border-radius:8px; padding:1rem; border:1px solid var(--border);">
+      <h4 style="font-size:.88rem; margin-bottom:.5rem;">freee MCP ハブ</h4>
+      <div class="pipe-flow">
+        <span class="pipe-box int" style="border-color:var(--accent2)">backoffice</span>
+        <span class="pipe-arr" style="color:var(--accent2)">仕訳 &rarr;</span>
+        <span class="pipe-box store">freee会計</span>
+        <span class="pipe-arr" style="color:var(--accent3)">&larr; 残高照会</span>
+        <span class="pipe-box int" style="border-color:var(--accent3)">work-manager</span>
+      </div>
+      <p style="font-size:.75rem; color:var(--muted); margin-top:.5rem;">backofficeが作成した仕訳を、work-managerがMCP経由で残高・PL照会に利用</p>
+    </div>
+
+    <div style="background:var(--bg); border-radius:8px; padding:1rem; border:1px solid var(--border);">
+      <h4 style="font-size:.88rem; margin-bottom:.5rem;">Meta広告データ → 朝ブリーフィング</h4>
+      <div class="pipe-flow">
+        <span class="pipe-box int" style="border-color:var(--accent1)">meta-ad-analyzer</span>
+        <span class="pipe-arr" style="color:var(--accent1)">KPI &rarr;</span>
+        <span class="pipe-box store">SQLite / Sheets</span>
+        <span class="pipe-arr" style="color:var(--accent3)">&larr; 集約</span>
+        <span class="pipe-box int" style="border-color:var(--accent3)">work-manager</span>
+      </div>
+      <p style="font-size:.75rem; color:var(--muted); margin-top:.5rem;">meta-ad-analyzerが蓄積した広告KPIを、work-managerが経営レポートに統合</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== Detailed Tree (below) ==================== -->
+<h2 style="font-size:1.3rem; margin: 2rem 0 .3rem;">詳細ファイルツリー</h2>
+<p class="subtitle" style="margin-bottom:1.2rem;">各プロジェクトのディレクトリ構成・ファイル一覧</p>
 
 <!-- ==================== meta-ad-analyzer ==================== -->
 <div class="project-section">
@@ -195,7 +1021,7 @@
   <div class="path">~/meta-ad-analyzer/ &mdash; Git: meta-ad-analyzer.git &mdash; v0.1.0 (pyproject.toml)</div>
   <div class="tree">
     <details open>
-      <summary class="dir">src/</summary>
+      <summary class="dir">src/ <span class="desc">85 Python files</span></summary>
       <details open>
         <summary class="dir">api/ <span class="desc">Meta Marketing API</span><span class="status status-active">稼働中</span></summary>
         <div class="leaf">
@@ -216,24 +1042,46 @@
       </details>
       <details>
         <summary class="dir">analysis/ <span class="desc">分析エンジン</span><span class="status status-stub">スタブ</span></summary>
-        <div class="leaf"><span class="file">__init__.py のみ</span> <span class="desc">— 実装ファイルなし。anomaly_detector等は未作成</span></div>
+        <div class="leaf"><span class="file">__init__.py のみ</span> <span class="desc">— 実装ファイルなし</span></div>
       </details>
       <details open>
-        <summary class="dir">hypothesis/ <span class="desc">Claude AI 仮説生成</span><span class="status status-active">稼働中</span></summary>
+        <summary class="dir">hypothesis/ <span class="desc">Claude AI 仮説生成（7ファイル）</span><span class="status status-active">稼働中</span></summary>
         <div class="leaf">
           <div><span class="file">generator.py</span> <span class="desc">— Claude Sonnet-4 呼び出し・JSON構造化出力</span></div>
           <div><span class="file">prompt_builder.py</span> <span class="desc">— KPIデータからプロンプト構築</span></div>
+          <div><span class="file">shopify_analyzer.py</span> <span class="desc">— 販売漏斗分析</span></div>
+          <div><span class="file">meta_adset_analyzer.py</span> <span class="desc">— 広告セット効率分析</span></div>
+          <div><span class="file">meta_ad_analyzer.py</span> <span class="desc">— クリエイティブ疲労検出</span></div>
+          <div><span class="file">meta_campaign_analyzer.py</span> <span class="desc">— キャンペーン構造分析</span></div>
+          <div><span class="desc" style="margin-left:0">各 *_analyzer.py は *_prompt_builder.py とペア構成</span></div>
         </div>
       </details>
       <details open>
-        <summary class="dir">reporting/ <span class="desc">レポート生成・通知</span><span class="status status-active">稼働中</span></summary>
+        <summary class="dir">reporting/ <span class="desc">レポート生成・通知（40+ファイル）</span><span class="status status-active">稼働中</span></summary>
         <div class="leaf">
           <div><span class="file">notifier.py</span> <span class="desc">— Slack Block Kit通知・ファイル添付</span></div>
           <div><span class="file">report_builder.py</span> <span class="desc">— Markdown/PDF/JSON生成</span></div>
           <div><span class="file">pdf_generator.py</span> <span class="desc">— xhtml2pdf変換</span></div>
-          <div><span class="dir">pdf_report/</span> <span class="desc">— DOCX/HTMLレポート生成</span></div>
+          <div><span class="dir">pdf_report/</span> <span class="desc">— 日次詳細レポート（DOCX/HTML）9セクション構成</span></div>
           <div style="margin-left:1.2rem"><span class="file">builder.py / docx_builder.py / html_template.py / charts.py / data_preparer.py / diagnostics.py / formatters.py</span></div>
           <div style="margin-left:1.2rem"><span class="dir">sections/</span> <span class="desc">— s1_executive〜s9_impact + s_ai_insights（11ファイル）</span></div>
+          <div><span class="dir">performance_report/</span> <span class="desc">— 月次パフォーマンスレポート（10セクション）</span><span class="status status-new">新規</span></div>
+          <div style="margin-left:1.2rem"><span class="desc">s1_monthly〜s10_ai_analysis。Jinja2テンプレート + データformatter分離</span></div>
+        </div>
+      </details>
+      <details open>
+        <summary class="dir">creative/ <span class="desc">クリエイティブ生成（11ファイル）</span><span class="status status-new">新規</span></summary>
+        <div class="leaf">
+          <div><span class="desc">SDXL (Replicate) + Stability AI による画像生成。背景除去(rembg)・クロップ・3解像度出力・Shopify連携</span></div>
+          <div><span class="file">prompt生成</span> <span class="desc">— Claude Sonnet-4 でプロンプト自動生成</span></div>
+          <div><span class="file">出力</span> <span class="desc">— 1080x1080 / 1080x1920 / 1200x628（Feed/Story/Display）</span></div>
+        </div>
+      </details>
+      <details open>
+        <summary class="dir">competitor/ <span class="desc">競合広告監視（7ファイル）</span><span class="status status-new">新規</span></summary>
+        <div class="leaf">
+          <div><span class="desc">Apify Facebook Ads Scraper連携。4ブランド監視・差分検出・メディアDL</span></div>
+          <div><span class="file">監視対象</span> <span class="desc">— FLYCKA(自社) / m.a.k.e___love / Lingerie Cheri / Annebra</span></div>
         </div>
       </details>
       <details>
@@ -248,14 +1096,18 @@
     </details>
 
     <details open>
-      <summary class="dir">scripts/ <span class="desc">実行スクリプト</span></summary>
+      <summary class="dir">scripts/ <span class="desc">実行スクリプト（48ファイル）</span></summary>
       <div class="leaf">
         <div><span class="file">run_daily.py</span> <span class="desc">— 統合CLI: report / dashboard / all</span></div>
         <div><span class="file">daily_run.py</span> <span class="desc">— Meta API 8ステップパイプライン</span></div>
         <div><span class="file">weekly_run.py</span> <span class="desc">— 週次実行</span></div>
-        <div><span class="file">generate_*.py</span> <span class="desc">— アカウント分析DOCX / アクティブレポート / ライフサイクルPDF / 停止基準 / 動画戦略（5ファイル）</span></div>
+        <div><span class="file">generate_performance_report.py</span> <span class="desc">— 月次パフォーマンスレポート</span><span class="status status-new">新規</span></div>
+        <div><span class="file">generate_creative.py</span> <span class="desc">— クリエイティブ生成</span><span class="status status-new">新規</span></div>
+        <div><span class="file">collect_competitor_ads.py</span> <span class="desc">— 競合広告収集</span><span class="status status-new">新規</span></div>
+        <div><span class="file">generate_*.py</span> <span class="desc">— アカウント分析DOCX / アクティブレポート / ライフサイクルPDF / 停止基準 / 動画戦略</span></div>
         <div><span class="file">fetch_shopify_data.py</span> <span class="desc">— Shopifyデータ取得（Sheets経由）</span></div>
-        <div><span class="dir">tools/</span> <span class="desc">— CPM分析・オーディエンス・期間比較・曜日時間帯分析・meta_cpm_report等（18ファイル）</span></div>
+        <div><span class="file">sync_insights.py</span> <span class="desc">— Meta API学習ステータス更新</span></div>
+        <div><span class="dir">tools/</span> <span class="desc">— CPM分析・オーディエンス・期間比較・曜日時間帯分析・原価分析等（37ファイル）</span></div>
       </div>
     </details>
 
@@ -275,25 +1127,37 @@
     </details>
 
     <details>
-      <summary class="dir">config/</summary>
+      <summary class="dir">knowledge/ <span class="desc">ナレッジベース</span><span class="status status-new">新規</span></summary>
       <div class="leaf">
-        <div><span class="file">settings.yaml</span> <span class="desc">— Meta API v21.0 / Claude Sonnet-4 / Slack / GCS / Creative（Replicate SDXL+Stability）</span></div>
-        <div><span class="file">targets.yaml</span> <span class="desc">— アカウント別KPI目標値（CPA・ROAS・CPM等）</span></div>
+        <div><span class="file">current-status.md</span> <span class="desc">— sync_insights.py自動生成。リアルタイムKPI・異常値・仮説</span></div>
+        <div><span class="file">decisions.md</span> <span class="desc">— 施策決定・効果測定結果</span></div>
+        <div><span class="file">patterns.md</span> <span class="desc">— 成功/失敗パターン抽出</span></div>
+        <div><span class="file">playbook.md</span> <span class="desc">— 運用ベストプラクティス（patterns.mdから昇格）</span></div>
       </div>
     </details>
 
     <details>
-      <summary class="dir">tests/ <span class="desc">テストスイート（8カテゴリ）</span></summary>
+      <summary class="dir">config/ <span class="desc">3つのYAML設定</span></summary>
+      <div class="leaf">
+        <div><span class="file">settings.yaml</span> <span class="desc">— Meta API v21.0 / Claude Sonnet-4 / Slack / GCS / Creative（Replicate SDXL+Stability）</span></div>
+        <div><span class="file">targets.yaml</span> <span class="desc">— アカウント別KPI目標値（CPA・ROAS・CPM等）</span></div>
+        <div><span class="file">competitors.yaml</span> <span class="desc">— Apify連携・監視対象4ブランド定義</span><span class="status status-new">新規</span></div>
+      </div>
+    </details>
+
+    <details>
+      <summary class="dir">tests/ <span class="desc">テストスイート（50ファイル・8+カテゴリ）</span></summary>
       <div class="leaf">
         <div>test_api/ test_data/ test_reporting/ test_storage/ test_integration/ test_analysis/ test_hypothesis/ test_plugins/</div>
+        <div>test_creative/ <span class="desc">（13ファイル）</span><span class="status status-new">新規</span> test_competitor/ <span class="desc">（9ファイル）</span><span class="status status-new">新規</span></div>
         <div><span class="file">conftest.py / mock_data/campaign_insights.json</span></div>
       </div>
     </details>
 
     <details>
-      <summary class="dir">reports/ <span class="desc">日次・週次レポート出力</span></summary>
+      <summary class="dir">reports/ <span class="desc">日次・週次・月次レポート出力</span></summary>
       <div class="leaf">
-        <div><span class="dir">2026/02/〜03/</span> <span class="desc">— 日次DOCX/HTML + 週次MD（自動生成）</span></div>
+        <div><span class="dir">2026/02/〜03/</span> <span class="desc">— 日次DOCX/HTML + 週次MD（自動生成・最新03-03）</span></div>
         <div><span class="dir">creative/</span> <span class="desc">— 画像プロンプトJSON</span></div>
         <div><span class="dir">reference/</span> <span class="desc">— 停止基準の構造的分析DOCX</span></div>
         <div><span class="file">dashboard.html</span> <span class="desc">— インタラクティブHTMLダッシュボード</span></div>
@@ -301,12 +1165,13 @@
     </details>
 
     <details>
-      <summary class="dir">docs/ <span class="desc">ドキュメント（13+ファイル）</span></summary>
+      <summary class="dir">docs/ <span class="desc">ドキュメント（12+ファイル）</span></summary>
       <div class="leaf">
         <div><span class="file">AUTOMATION.md / HOW_TO_GENERATE_REPORT.md</span> <span class="desc">— 運用ガイド</span></div>
         <div><span class="dir">skills/</span> <span class="desc">— SKILL.md + 分析ステップ・KPIアルゴリズム定義</span></div>
         <div><span class="dir">setup/</span> <span class="desc">— GCSセットアップガイド</span></div>
         <div><span class="dir">research/</span> <span class="desc">— Claude広告リサーチ</span></div>
+        <div><span class="dir">test_materials/</span> <span class="desc">— マルチ期間KPI分析レポート・操作活用ガイド</span></div>
       </div>
     </details>
 
@@ -315,8 +1180,10 @@
       <div class="leaf">
         <div><span class="dir">processed/</span> <span class="desc">— 本番SQLiteデータベース</span></div>
         <div><span class="dir">raw/</span> <span class="desc">— Meta API生データ（JSON）</span></div>
-        <div><span class="dir">cache/</span> <span class="desc">— 日次キャッシュJSON</span></div>
+        <div><span class="dir">cache/</span> <span class="desc">— 日次キャッシュJSON（最新: 2026-02-25）</span></div>
         <div><span class="dir">fonts/</span> <span class="desc">— メイリオ（PDF生成用）</span></div>
+        <div><span class="dir">creative_output/</span> <span class="desc">— 生成クリエイティブ（UUID/timestamp別・3解像度）</span><span class="status status-new">新規</span></div>
+        <div><span class="dir">competitor_media/</span> <span class="desc">— 競合広告メディア（広告ID別フォルダ）</span><span class="status status-new">新規</span></div>
       </div>
     </details>
 
@@ -331,7 +1198,7 @@
       <summary class="dir">.claude/</summary>
       <div class="leaf">
         <div><span class="file">commands/report.md</span> <span class="desc">— /report カスタムコマンド（日付解釈→レポート生成）</span></div>
-        <div><span class="dir">skills/meta-ads-analysis/</span> <span class="desc">— SKILL.md + references/（分析アルゴリズム・KPI定義 4ファイル）</span></div>
+        <div><span class="dir">skills/meta-ads-analysis/</span> <span class="desc">— SKILL.md + references/（分析アルゴリズム・KPI定義 3ファイル）</span></div>
       </div>
     </details>
   </div>
@@ -343,14 +1210,16 @@
   <div class="path">~/backoffice/ &mdash; Git: backoffice リポジトリ</div>
   <div class="tree">
     <details open>
-      <summary class="dir">freee-mcp/ <span class="desc">freee MCP Server</span> <span class="tag tag-ts">TypeScript</span><span class="status status-active">稼働中</span></summary>
+      <summary class="dir">freee-mcp/ <span class="desc">freee MCP Server &amp; Claude Plugin</span> <span class="tag tag-ts">TypeScript</span><span class="status status-active">稼働中</span></summary>
       <div class="leaf">
         <div><span class="desc">freee API（会計/人事/請求書/PM/販売管理）をMCPツール化。OAuth 2.0 + PKCE + OpenAPIスキーマ駆動</span></div>
         <div><span class="dir">src/</span> <span class="desc">— api/ auth/ cli/ config/ mcp/ openapi/ types/ utils/ e2e/</span></div>
         <div><span class="dir">openapi/</span> <span class="desc">— 5サービス分のAPIスキーマ JSON + minimal/（合計2.9MB）</span></div>
-        <div><span class="dir">skills/freee-api-skill/</span> <span class="desc">— 93個のAPIリファレンス + 6レシピ（deal/expense/HR/invoice等）</span></div>
+        <div><span class="dir">skills/freee-api-skill/</span> <span class="desc">— 80+ APIリファレンス + 7レシピ（deal/expense/HR/invoice/troubleshooting等）</span></div>
         <div><span class="dir">scripts/</span> <span class="desc">— fetch-schemas.ts / generate-references.ts</span></div>
-        <div><span class="file">package.json</span> <span class="desc">— v0.8.1 | npm公開済 | @modelcontextprotocol/sdk</span></div>
+        <div><span class="dir">.claude-plugin/</span> <span class="desc">— plugin.json + marketplace.json（Claude Plugin化）</span><span class="status status-new">新規</span></div>
+        <div><span class="dir">.claude/</span> <span class="desc">— settings.json（hooks: prettier自動整形）</span><span class="status status-new">新規</span></div>
+        <div><span class="file">package.json</span> <span class="desc">— v0.8.1 | npm公開済 | pnpm 10.27.0 | @modelcontextprotocol/sdk</span></div>
       </div>
     </details>
 
@@ -358,7 +1227,7 @@
       <summary class="dir">auto-journal/ <span class="desc">自動仕訳エンジン</span> <span class="tag tag-py">Python</span><span class="status status-active">稼働中</span></summary>
       <div class="leaf">
         <div><span class="file">config.py</span> <span class="desc">— 勘定科目（11種）・部門・口座（5種）・取引先（12社）・税区分定義</span></div>
-        <div><span class="file">rules.py</span> <span class="desc">— 30ルール定義（A:広告 B:SaaS C:仕入 D:売上 E:銀行 F:PayPal G:その他）</span></div>
+        <div><span class="file">rules.py</span> <span class="desc">— 200+ルール定義（A:広告 B:SaaS C:仕入 D:売上 E:銀行 F:PayPal G:その他）</span></div>
         <div><span class="file">matcher.py</span> <span class="desc">— ルールマッチング</span></div>
         <div><span class="file">registrar.py</span> <span class="desc">— freee API登録</span></div>
         <div><span class="file">scripts/run_journal.py</span> <span class="desc">— 本番実行エントリポイント</span></div>
@@ -369,22 +1238,30 @@
     <details open>
       <summary class="dir">cashflow/ <span class="desc">資金繰り管理</span> <span class="tag tag-py">Python</span><span class="status status-active">稼働中</span></summary>
       <div class="leaf">
+        <div><span class="file">config.py</span> <span class="desc">— 口座ID・入金源・固定費(月額&yen;241,920)・アラート閾値・予測パラメータ</span></div>
+        <div><span class="file">budget_config.py</span> <span class="desc">— 予算・目標値設定</span><span class="status status-new">新規</span></div>
+        <div><span class="file">models.py</span> <span class="desc">— WalletBalance / Transaction / UnsettledDeal / AlertLevel / MonthlyPL</span></div>
+        <div><span class="file">freee_client.py</span> <span class="desc">— freee APIクライアント（wallet_txns, deals, balance_sheet）</span></div>
+        <div><span class="file">shopify_client.py</span> <span class="desc">— Shopify GraphQL（Payouts/Balance/Transactions・次回入金推定）</span><span class="status status-new">新規</span></div>
         <div><span class="file">fetcher.py</span> <span class="desc">— freee残高取得</span></div>
-        <div><span class="file">calculator.py</span> <span class="desc">— KPI計算・アラート判定・残高予測</span></div>
-        <div><span class="file">sheets_writer.py</span> <span class="desc">— Google Sheets出力</span></div>
-        <div><span class="file">freee_client.py</span> <span class="desc">— freee APIクライアント</span></div>
-        <div><span class="file">models.py / config.py</span> <span class="desc">— WalletBalance / Transaction / AlertLevel / 閾値定義</span></div>
+        <div><span class="file">calculator.py</span> <span class="desc">— KPI計算・DSO・runway・burn_rate・アラート判定・残高予測</span></div>
+        <div><span class="file">sheets_writer.py</span> <span class="desc">— Google Sheets出力（銀行入出金・UPSIDER・Shopify Payouts）</span></div>
+        <div><span class="file">dashboard_generator.py</span> <span class="desc">— HTML 5画面ダッシュボード生成（ヒートマップ付き）</span><span class="status status-new">新規</span></div>
+        <div><span class="file">segment_pl.py</span> <span class="desc">— セグメント別損益分析（D2C/B2B/コンサル）</span><span class="status status-new">新規</span></div>
+        <div><span class="file">ss_dashboard_generator.py</span> <span class="desc">— スプレッドシート上Dashboard生成</span><span class="status status-new">新規</span></div>
         <div><span class="file">scripts/run_daily.py</span> <span class="desc">— 日次バッチエントリ</span></div>
+        <div><span class="file">scripts/migrate_*.py</span> <span class="desc">— UPSIDER・銀行履歴マイグレーション</span></div>
+        <div><span class="file">scripts/generate_*.py</span> <span class="desc">— ダッシュボード・SSダッシュボード生成</span></div>
       </div>
     </details>
 
     <details open>
-      <summary class="dir">receipt-collector/ <span class="desc">領収書自動収集</span> <span class="tag tag-py">Python</span><span class="status status-active">稼働中</span></summary>
+      <summary class="dir">receipt-collector/ <span class="desc">領収書自動収集（18 SaaS対応）</span> <span class="tag tag-py">Python</span><span class="status status-active">稼働中</span></summary>
       <div class="leaf">
         <div><span class="file">imap_client.py</span> <span class="desc">— Gmail IMAP接続・メール検索</span></div>
         <div><span class="file">receipt_uploader.py</span> <span class="desc">— freee receipts APIにPDFアップロード</span></div>
         <div><span class="file">deal_matcher.py</span> <span class="desc">— UPSIDERカード取引マッチング</span></div>
-        <div><span class="file">config.py</span> <span class="desc">— 18+SaaSプロバイダー定義（Meta/Google/Shopify/Slack/OpenAI等）</span></div>
+        <div><span class="file">config.py</span> <span class="desc">— 18 SaaS定義（Meta/Google/TikTok/Shopify/Slack/OpenAI/Klaviyo等）</span></div>
         <div><span class="file">scripts/run_collector.py</span> <span class="desc">— CLIエントリポイント</span></div>
       </div>
     </details>
@@ -394,29 +1271,31 @@
       <div class="leaf">
         <div><span class="file">create_excel.py</span> <span class="desc">— Excel帳票生成</span></div>
         <div><span class="file">extract_invoices.py</span> <span class="desc">— 請求書データ抽出</span></div>
-        <div><span class="file">monthly_pl.py</span> <span class="desc">— 月次事業別PL自動生成（銀行CSV + Upsiderデータ）</span><span class="status status-new">移動</span></div>
+        <div><span class="file">monthly_pl.py</span> <span class="desc">— 月次事業別PL自動生成（銀行CSV + Upsiderデータ）</span></div>
       </div>
     </details>
 
     <details>
-      <summary class="dir">freee-gmail-forwarder/ <span class="desc">Gmail→freee転送GAS</span><span class="status status-new">移動</span></summary>
+      <summary class="dir">freee-gmail-forwarder/ <span class="desc">Gmail→freee転送GAS</span></summary>
       <div class="leaf">
         <div><span class="file">code.gs</span> <span class="desc">— Google Apps Script（Gmail請求メール→freee転送）</span></div>
       </div>
     </details>
 
     <details>
-      <summary class="dir">scripts/</summary>
+      <summary class="dir">scripts/ <span class="desc">バッチスクリプト（7ファイル）</span></summary>
       <div class="leaf">
         <div><span class="file">generate_bank_analysis_pdf.py</span> <span class="desc">— 銀行入出金分析PDF</span></div>
         <div><span class="file">generate_financial_report_pdf.py</span> <span class="desc">— 財務分析レポートPDF</span></div>
+        <div><span class="file">inspect_hatchu_upsider*.py</span> <span class="desc">— Upsider取引検査</span></div>
+        <div><span class="file">transform_*_to_db.py</span> <span class="desc">— 銀行/Upsider/注文→DB変換（3ファイル）</span></div>
       </div>
     </details>
 
     <details>
-      <summary class="dir">tests/test_cashflow/</summary>
+      <summary class="dir">tests/test_cashflow/ <span class="desc">テストスイート（5ファイル）</span></summary>
       <div class="leaf">
-        <div>test_calculator.py / test_fetcher.py / test_freee_client.py</div>
+        <div>test_calculator.py / test_fetcher.py / test_freee_client.py / test_shopify_client.py / test_dashboard_generator.py</div>
       </div>
     </details>
 
@@ -437,6 +1316,14 @@
         <div><span class="dir">_charts/</span> <span class="desc">— グラフ画像（残高推移・収支内訳・DF推移 5枚）</span></div>
       </div>
     </details>
+
+    <details>
+      <summary class="dir">分析対象資料/ <span class="desc">分析用データソース</span><span class="status status-new">新規</span></summary>
+      <div class="leaf">
+        <div><span class="dir">extracted/</span> <span class="desc">— UPSIDERカード明細CSV（2025-2026）</span></div>
+        <div><span class="file">analyze.py / sniff_analysis.py / generate_report.py / generate_word.py</span> <span class="desc">— 分析スクリプト</span></div>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -446,12 +1333,21 @@
   <div class="path">~/work-manager/ &mdash; Git: work-manager リポジトリ</div>
   <div class="tree">
     <div class="leaf">
-      <div><span class="file">todo.md</span> <span class="desc">— タスク管理（週次サイクル・クライアント管理・イグジットKPIトラッカー）</span></div>
+      <div><span class="file">todo.md</span> <span class="desc">— タスク管理SSoT（354行・月次目標+週次ルーティン+3本の矢）</span></div>
       <div><span class="file">gantt.html</span> <span class="desc">— ガントチャート（todo.mdと連動）</span></div>
       <div><span class="file">goal-plan.html</span> <span class="desc">— イグジット達成計画（2026年12月目標）</span></div>
-      <div><span class="file">project-structure.html</span> <span class="desc">— 全プロジェクト構成マップ（このファイル）</span><span class="status status-new">移動</span></div>
+      <div><span class="file">project-structure.html</span> <span class="desc">— 全プロジェクト構成マップ（このファイル）</span></div>
+      <div><span class="file">consulting-playbook.html</span> <span class="desc">— コンサルティング・プレイブック</span><span class="status status-new">新規</span></div>
       <div><span class="file">CLAUDE.md / .gitignore</span> <span class="desc">— プロジェクト設定</span></div>
     </div>
+
+    <details open>
+      <summary class="dir">decisions/ <span class="desc">意思決定ログ</span><span class="status status-new">新規</span></summary>
+      <div class="leaf">
+        <div><span class="file">2026-03-13_台湾越境EC価格戦略.md</span> <span class="desc">— パターンB採用（為替換算+NT$2,000送料無料）</span></div>
+        <div><span class="file">2026-03-13_台湾輸入規制調査.md</span> <span class="desc">— HS6108/6212「開放」確認。法的障壁なし</span></div>
+      </div>
+    </details>
 
     <details open>
       <summary class="dir">strategy/ <span class="desc">事業戦略文書</span></summary>
@@ -460,23 +1356,24 @@
         <div><span class="file">2026-03_profit800-plan.md</span> <span class="desc">— 月次営業利益800万円達成計画</span></div>
       </div>
       <details open>
-        <summary class="dir">flycka/ <span class="desc">FLYCKA越境EC戦略</span><span class="status status-new">移動</span></summary>
+        <summary class="dir">flycka/ <span class="desc">FLYCKA越境EC戦略</span></summary>
         <div class="leaf">
           <div><span class="file">FLYCKA_越境EC戦略.md / .html / .pdf</span> <span class="desc">— 越境EC戦略文書（3形式）</span></div>
+          <div><span class="file">FLYCKA_越境EC戦略_v2.md</span> <span class="desc">— v2: 台湾ミニマルテスト計画（3/19配信開始→3/31 Go/No-Go）</span><span class="status status-new">新規</span></div>
           <div><span class="file">FLYCKA_越境EC_TODO_slack.txt</span> <span class="desc">— Slack共有用TODOリスト</span></div>
         </div>
       </details>
     </details>
 
     <details>
-      <summary class="dir">tools/ <span class="desc">ユーティリティ</span><span class="status status-new">移動</span></summary>
+      <summary class="dir">tools/ <span class="desc">ユーティリティ</span></summary>
       <div class="leaf">
         <div><span class="file">md_to_pdf.py</span> <span class="desc">— Markdown→PDF変換ツール</span></div>
       </div>
     </details>
 
     <div style="margin-top:.6rem; font-size:.78rem; color:var(--muted); font-family:'Segoe UI',sans-serif;">
-      ※ decisions/ notes/ projects/ は CLAUDE.md で定義済みだが未作成
+      ※ notes/ projects/ weekly.md は CLAUDE.md で定義済みだが未作成
     </div>
   </div>
 </div>
@@ -484,14 +1381,14 @@
 <!-- ==================== creative-pipeline ==================== -->
 <div class="project-section">
   <h2><span class="dot dot-teal"></span> creative-pipeline</h2>
-  <div class="path">~/creative-pipeline/ &mdash; Git: 新規初期化<span class="status status-new">新規</span></div>
+  <div class="path">~/creative-pipeline/ &mdash; Git: 初期化済み（コミット0件）</div>
   <div class="tree">
     <div class="leaf">
-      <div><span class="file">edit_background.py</span> <span class="desc">— 単体背景差替（OpenAI / Stability AI）</span></div>
-      <div><span class="file">composite_background.py</span> <span class="desc">— 画像合成</span></div>
-      <div><span class="file">batch_seasons.py</span> <span class="desc">— 季節バッチ処理</span></div>
-      <div><span class="file">hybrid_composite.py</span> <span class="desc">— ハイブリッド合成</span></div>
-      <div><span class="file">test_inpainting.py</span> <span class="desc">— インペインティングテスト</span></div>
+      <div><span class="file">edit_background.py</span> <span class="desc">— OpenAI images.edit（シンプル背景置換）</span></div>
+      <div><span class="file">composite_background.py</span> <span class="desc">— rembg + DALL-E 3 + Pillow（3ステップ合成）</span></div>
+      <div><span class="file">test_inpainting.py</span> <span class="desc">— Stability AI + Replicate比較テスト</span></div>
+      <div><span class="file">batch_seasons.py</span> <span class="desc">— Stability AI inpaint 季節5パターンバッチ実行</span></div>
+      <div><span class="file">hybrid_composite.py</span> <span class="desc">— ハイブリッド合成（元画像100%保持+inpaint背景）★最高品質</span></div>
       <div><span class="file">CLAUDE.md / .gitignore / .env</span> <span class="desc">— プロジェクト設定</span></div>
     </div>
     <details>
@@ -500,60 +1397,23 @@
         <div><span class="file">test-model.png</span> <span class="desc">— テスト用モデル画像</span></div>
       </div>
     </details>
-    <div class="leaf" style="margin-top:.4rem">
-      <div><span class="dir">outputs/</span> <span class="desc">— 生成画像出力（gitignored）</span></div>
-    </div>
+    <details>
+      <summary class="dir">outputs/ <span class="desc">生成済み画像（26ファイル）</span></summary>
+      <div class="leaf">
+        <div><span class="desc">季節5パターン（spring/summer/autumn/winter/night）× 通常+ハイブリッド + マスク・比較画像</span></div>
+      </div>
+    </details>
   </div>
 </div>
 
 <!-- ==================== tech-news-digest ==================== -->
-<div class="project-section">
-  <h2><span class="dot dot-blue"></span> tech-news-digest</h2>
-  <div class="path">~/tech-news-digest/ &mdash; Git: tech-news-digest リポジトリ</div>
+<div class="project-section" style="opacity:.6">
+  <h2><span class="dot dot-blue"></span> tech-news-digest <span class="status status-gone">ディレクトリ未検出</span></h2>
+  <div class="path">~/tech-news-digest/ &mdash; CLAUDE.md に記載あり。ディレクトリが存在しない（未初期化 or 移動済み）</div>
   <div class="tree">
-    <details open>
-      <summary class="dir">src/ <span class="desc">メインソースコード</span><span class="status status-active">稼働中</span></summary>
-      <div class="leaf">
-        <div><span class="file">main.py</span> <span class="desc">— オーケストレーター（--dry-run対応）</span></div>
-        <div><span class="file">aggregator.py</span> <span class="desc">— 記事重複排除・統合</span></div>
-        <div><span class="file">summarizer.py</span> <span class="desc">— Claude APIで重要度判定+日本語要約</span></div>
-        <div><span class="file">notifier.py</span> <span class="desc">— Slack Block Kit送信</span></div>
-        <div><span class="file">state.py</span> <span class="desc">— SQLite既送信管理</span></div>
-        <div><span class="file">models.py</span> <span class="desc">— データモデル定義</span></div>
-      </div>
-      <details>
-        <summary class="dir">collectors/ <span class="desc">各ソースからの記事収集</span></summary>
-        <div class="leaf">
-          <div><span class="file">base.py / hackernews.py / reddit.py / rss.py / twitter.py</span></div>
-        </div>
-      </details>
-    </details>
-
-    <details>
-      <summary class="dir">config/</summary>
-      <div class="leaf">
-        <div><span class="file">topics.yaml</span> <span class="desc">— 監視トピック・キーワード定義</span></div>
-      </div>
-    </details>
-
-    <details>
-      <summary class="dir">tests/ <span class="desc">テストスイート</span></summary>
-      <div class="leaf">
-        <div><span class="file">test_aggregator.py / test_collectors.py / test_notifier.py / test_summarizer.py</span></div>
-        <div><span class="file">conftest.py</span></div>
-      </div>
-    </details>
-
-    <details>
-      <summary class="dir">scripts/ <span class="desc">実行スクリプト</span></summary>
-      <div class="leaf">
-        <div><span class="file">run_digest.bat / register_task.bat</span> <span class="desc">— Windows実行バッチ</span></div>
-      </div>
-    </details>
-
-    <div class="leaf">
-      <div><span class="file">pyproject.toml</span> <span class="desc">— プロジェクト設定・依存関係</span></div>
-      <div><span class="dir">data/</span> <span class="desc">— digest.db（SQLite既送信管理）</span></div>
+    <div class="leaf" style="font-family:'Segoe UI',sans-serif; font-size:.82rem; color:var(--muted);">
+      当初計画: HN/Reddit/RSS/Twitter収集 → Claude AI要約 → Slack配信<br>
+      現時点でディレクトリが存在しないため、構造情報なし。グローバルCLAUDE.mdのプロジェクト一覧からの除外を推奨。
     </div>
   </div>
 </div>
@@ -561,7 +1421,7 @@
 <!-- ==================== Claude Code Global Config ==================== -->
 <div class="project-section">
   <h2><span class="dot dot-rose"></span> Claude Code グローバル設定</h2>
-  <div class="path">~/.claude/ &mdash; 全プロジェクト共通設定（CLAUDE.md + rules/ + memory/）</div>
+  <div class="path">~/.claude/ &mdash; 全プロジェクト共通設定（CLAUDE.md + rules/ + commands/ + memory/）</div>
 
   <div class="tree">
     <!-- CLAUDE.md -->
@@ -587,6 +1447,14 @@
       </div>
     </details>
 
+    <!-- Commands -->
+    <details open>
+      <summary class="dir">commands/ <span class="desc">カスタムコマンド（1ファイル）</span><span class="status status-active">稼働中</span></summary>
+      <div class="leaf">
+        <div><span class="file">morning.md</span> <span class="desc">— 朝のブリーフィング自動化（134行）。todo.md解析 → freee残高 → Meta KPI → 統合出力</span><span class="status status-new">新規</span></div>
+      </div>
+    </details>
+
     <!-- Flow diagram -->
     <div style="margin-left: 1.2rem;">
       <div class="flow-diagram">
@@ -594,30 +1462,30 @@
           <div class="flow-box active">Phase駆動</div>
           <span class="flow-label">phase-workflow.md</span>
         </div>
-        <span class="flow-arrow">→</span>
+        <span class="flow-arrow">&rarr;</span>
         <div>
           <div class="flow-box active">品質ゲート</div>
           <span class="flow-label">quality-gate.md</span>
         </div>
-        <span class="flow-arrow">→</span>
+        <span class="flow-arrow">&rarr;</span>
         <div style="display:flex; flex-direction:column; gap:.3rem;">
           <div style="display:flex; align-items:center; gap:.4rem;">
             <div class="flow-box" style="font-size:.72rem; padding:.2rem .5rem; border-color:#1e7e34; color:#1e7e34;">Pass</div>
-            <span class="flow-arrow">→</span>
+            <span class="flow-arrow">&rarr;</span>
             <div class="flow-box active" style="font-size:.72rem; padding:.2rem .5rem;">次Phase</div>
           </div>
           <div style="display:flex; align-items:center; gap:.4rem;">
             <div class="flow-box" style="font-size:.72rem; padding:.2rem .5rem; border-color:#dc3545; color:#dc3545;">Fail</div>
-            <span class="flow-arrow">→</span>
+            <span class="flow-arrow">&rarr;</span>
             <div class="flow-box" style="font-size:.72rem; padding:.2rem .5rem; border-color:var(--accent3); color:var(--accent3);">A/B/C/D分類</div>
           </div>
         </div>
-        <span class="flow-arrow">→</span>
+        <span class="flow-arrow">&rarr;</span>
         <div>
           <div class="flow-box active">振り返り</div>
           <span class="flow-label">learn-retrospective.md</span>
         </div>
-        <span class="flow-arrow">→</span>
+        <span class="flow-arrow">&rarr;</span>
         <div>
           <div class="flow-box active">Memory</div>
           <span class="flow-label">auto memory</span>
@@ -641,27 +1509,12 @@
       </div>
     </details>
 
-    <!-- Skills / Commands -->
+    <!-- Skills -->
     <details>
-      <summary class="dir" style="margin-top:.5rem;">skills/ / commands/ <span class="desc">カスタムスキル・コマンド</span><span class="status status-stub">未設定</span></summary>
+      <summary class="dir" style="margin-top:.5rem;">skills/ <span class="desc">カスタムスキル</span><span class="status status-stub">未設定</span></summary>
       <div class="leaf">
-        <div><span class="desc">グローバルレベルでのカスタムスキル・コマンドは未作成</span></div>
-        <div><span class="desc">プロジェクト別: meta-ad-analyzer に /report コマンド + meta-ads-analysis スキルあり</span></div>
-      </div>
-    </details>
-
-    <!-- Plugins -->
-    <details>
-      <summary class="dir" style="margin-top:.5rem;">plugins/ <span class="desc">プラグイン</span><span class="status status-stub">未有効化</span></summary>
-      <div class="leaf">
-        <div><span class="desc">settings.json: 空 — 明示的に有効化されたプラグインなし</span></div>
-        <div style="margin-top:.4rem;"><span class="file">利用可能（マーケットプレイス）:</span></div>
-        <div style="margin-left:.6rem;">
-          <span class="desc">内部30個: feature-dev / code-review / commit-commands / security-guidance / hookify / typescript-lsp 他</span>
-        </div>
-        <div style="margin-left:.6rem;">
-          <span class="desc">外部13個: github / slack / playwright / stripe / supabase / firebase 他</span>
-        </div>
+        <div><span class="desc">グローバルレベルでのカスタムスキルは未作成</span></div>
+        <div><span class="desc">プロジェクト別: meta-ad-analyzer に meta-ads-analysis スキル / freee-mcp に freee-api-skill スキルあり</span></div>
       </div>
     </details>
 
@@ -674,11 +1527,15 @@
     </details>
 
     <!-- Auto Memory -->
-    <details>
-      <summary class="dir" style="margin-top:.5rem;">memory/ <span class="desc">Auto Memory（学習蓄積）</span><span class="status status-active">稼働中</span></summary>
+    <details open>
+      <summary class="dir" style="margin-top:.5rem;">memory/ <span class="desc">Auto Memory（学習蓄積・6ファイル）</span><span class="status status-active">稼働中</span></summary>
       <div class="leaf">
-        <div><span class="file">MEMORY.md</span> <span class="desc">— 事業構造(3つの至上命題) / 事業別PL分析 / プロジェクト構成</span></div>
-        <div><span class="file">pl-analysis.md</span> <span class="desc">— 事業別PL分析詳細（2026-03-12作成）</span></div>
+        <div><span class="file">MEMORY.md</span> <span class="desc">— SSoT: 事業構造・FLYCKA概要・資金繰り・UPSIDER・ダッシュボード教訓</span></div>
+        <div><span class="file">flycka-d2c.md</span> <span class="desc">— FLYCKA D2C事業詳細</span></div>
+        <div><span class="file">pl-analysis.md</span> <span class="desc">— 事業別PL分析詳細</span></div>
+        <div><span class="file">cashflow-status.md</span> <span class="desc">— 資金繰り管理ステータス</span></div>
+        <div><span class="file">meta-billing-research.md</span> <span class="desc">— Meta広告×資金繰り連携調査（3選択肢提示済み・未選択）</span></div>
+        <div><span class="file">dashboard-bugs.md</span> <span class="desc">— ダッシュボード開発の教訓・バグパターン</span></div>
       </div>
     </details>
 
@@ -691,11 +1548,10 @@
       <tbody>
         <tr><td>CLAUDE.md</td><td class="status-on">稼働中</td><td>応答/コーディング/セキュリティ/ワークフロー/Meta広告ルール</td></tr>
         <tr><td>Rules（3件）</td><td class="status-on">稼働中</td><td>Phase駆動 → 品質ゲート → 振り返り の一貫フレームワーク</td></tr>
-        <tr><td>Skills</td><td class="status-off">未設定</td><td>グローバルレベルでは未作成</td></tr>
-        <tr><td>Commands</td><td class="status-off">未設定</td><td>グローバルレベルでは未作成</td></tr>
-        <tr><td>Plugins</td><td class="status-off">未有効化</td><td>マーケットプレイス43個利用可能</td></tr>
+        <tr><td>Commands（1件）</td><td class="status-on">稼働中</td><td>morning.md — 朝のブリーフィング自動化</td></tr>
+        <tr><td>Skills</td><td class="status-off">未設定</td><td>グローバルレベルでは未作成。プロジェクト別に2件あり</td></tr>
         <tr><td>MCP Servers</td><td class="status-on">稼働中</td><td>freee-mcp（freee API全5サービス）</td></tr>
-        <tr><td>Auto Memory</td><td class="status-on">稼働中</td><td>MEMORY.md + pl-analysis.md</td></tr>
+        <tr><td>Auto Memory</td><td class="status-on">稼働中</td><td>MEMORY.md + 5トピックファイル</td></tr>
         <tr><td>settings.json</td><td class="status-off">空</td><td>権限・プラグイン設定なし</td></tr>
       </tbody>
     </table>
@@ -718,12 +1574,17 @@
       <tr>
         <td class="verdict">auto_journal が2箇所</td>
         <td>meta-ad-analyzer/src/auto_journal/<br>backoffice/auto-journal/</td>
-        <td>meta-ad-analyzer側は異物。backoffice側が正本（30ルール）。meta側は削除推奨</td>
+        <td>meta-ad-analyzer側は異物。backoffice側が正本（200+ルール）。meta側は削除推奨</td>
       </tr>
       <tr>
         <td class="verdict">Google Sheets連携が2箇所</td>
         <td>meta-ad-analyzer/src/data/sheets_client.py<br>backoffice/cashflow/sheets_writer.py</td>
         <td>データが異なる（広告 vs 資金繰り）ため実害なし。共通ライブラリ化は未実施</td>
+      </tr>
+      <tr>
+        <td class="verdict">クリエイティブ生成が2箇所</td>
+        <td>meta-ad-analyzer/src/creative/ (11ファイル)<br>creative-pipeline/ (5スクリプト)</td>
+        <td>meta側はAPI連携+Shopify統合。creative-pipeline側はPoC・実験用。統合の検討余地あり</td>
       </tr>
       <tr>
         <td class="verdict">PDF生成が2箇所</td>
@@ -745,12 +1606,17 @@
         <td>meta-ad-analyzer/dashboard/ (Streamlit)<br>meta-ad-analyzer/dashboard-web/ (HTML+GAS)</td>
         <td>Streamlit版はスタブ。HTML+GAS版が稼働中</td>
       </tr>
+      <tr>
+        <td class="verdict">tech-news-digest 不在</td>
+        <td>~/tech-news-digest/</td>
+        <td>グローバルCLAUDE.mdに記載されているが、ディレクトリが存在しない。記載の削除 or 初期化が必要</td>
+      </tr>
     </tbody>
   </table>
 </div>
 
 <footer>
-  Generated by Claude Code &mdash; 2026-03-13
+  Generated by Claude Code &mdash; 2026-03-14
 </footer>
 
 </body>
