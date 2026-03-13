@@ -6,71 +6,262 @@
 <title>タスク管理 - ガントチャート</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', 'Meiryo', sans-serif; background: #faf8f3; color: #2d2a24; padding: 24px; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Segoe UI', 'Meiryo', sans-serif; background: #faf8f3; color: #2d2a24; padding: 24px; padding-top: 72px; }
+
+  /* Fixed header nav */
+  .fixed-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #fff; border-bottom: 1px solid #e5e0d5; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 0 32px; display: flex; align-items: center; gap: 16px; height: 52px; }
+  .fixed-header-title { font-size: 14px; font-weight: 700; color: #1a1814; white-space: nowrap; flex-shrink: 0; }
+  .fixed-header-nav { display: flex; flex-wrap: wrap; gap: 6px; overflow-x: auto; }
+  .fixed-header-nav a { display: inline-block; padding: 5px 12px; border-radius: 6px; border: 1px solid #d5d0c5; font-size: 12px; font-weight: 500; color: #6b6560; transition: all 0.15s; white-space: nowrap; text-decoration: none; }
+  .fixed-header-nav a:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; text-decoration: none; }
+  .fixed-header-nav a.nav-active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
   h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; color: #1a1814; }
   .subtitle { font-size: 13px; color: #8a8478; margin-bottom: 6px; }
-  .goal-banner { background: linear-gradient(90deg, #dc2626, #b91c1c); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+  .goal-banner { background: linear-gradient(90deg, #1e3a5f, #152a45); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 16px; transition: opacity 0.15s; }
+  .goal-banner-link { text-decoration: none; display: block; }
+  .goal-banner-link:hover .goal-banner { opacity: 0.85; cursor: pointer; }
+
+  /* ---- Controls ---- */
+  .controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .filter-group-label { font-size: 11px; color: #8a8478; font-weight: 600; margin-right: 2px; }
+  .filter-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 4px; border: 1px solid #d5d0c5; background: #fff; font-size: 11px; cursor: pointer; transition: all 0.15s; color: #6b6560; }
+  .filter-btn:hover { border-color: #b8b0a4; }
+  .filter-btn.active { border-color: transparent; color: #fff; }
+  .filter-btn.active[data-cat="exit"] { background: #1e3a5f; }
+  .filter-btn.active[data-cat="finance"] { background: #f59e0b; }
+  .filter-btn.active[data-cat="flycka"] { background: #8b5cf6; }
+  .filter-btn.active[data-cat="sales"] { background: #3b82f6; }
+  .filter-btn.active[data-cat="hold"] { background: #9ca3af; }
+  #hide-done-btn.active { background: #16a34a; border-color: transparent; color: #fff; }
+  .filter-btn .dot { width: 8px; height: 8px; border-radius: 50%; }
+
   .legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b6560; }
   .legend-color { width: 14px; height: 14px; border-radius: 3px; }
-  .gantt-container { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; min-width: 900px; }
-  th { text-align: left; font-size: 11px; font-weight: 500; color: #8a8478; padding: 6px 8px; border-bottom: 1px solid #e5e0d5; position: sticky; top: 0; background: #faf8f3; z-index: 20; }
+  .gantt-container { overflow-x: auto; max-height: calc(100vh - 200px); overflow-y: auto; }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 900px; }
+  thead th { text-align: left; font-size: 11px; font-weight: 500; color: #8a8478; padding: 6px 8px; border-bottom: 1px solid #e5e0d5; position: sticky; top: 0; background: #faf8f3; z-index: 20; }
+  thead tr:nth-child(2) th { top: 27px; }
   td { padding: 0; border-bottom: 1px solid #ede9e0; }
-  .task-label { padding: 8px; font-size: 13px; white-space: nowrap; min-width: 260px; max-width: 300px; }
+
+  /* ---- Task labels ---- */
+  .task-label { padding: 8px; font-size: 13px; white-space: nowrap; min-width: 300px; max-width: 360px; }
+  .task-label .name-row { display: flex; align-items: center; gap: 6px; }
   .task-label .name { font-weight: 500; color: #2d2a24; }
+  .task-label .name.done-text { text-decoration: line-through; color: #a3a39a; }
   .task-label .date { font-size: 11px; color: #8a8478; margin-top: 2px; }
-  .task-label .pillar { font-size: 10px; color: #dc2626; margin-top: 1px; }
-  .sub-label { padding: 4px 8px 4px 28px; font-size: 11px; white-space: nowrap; min-width: 260px; max-width: 300px; color: #6b6560; }
+  .task-label .pillar { font-size: 10px; color: #1e3a5f; margin-top: 1px; }
+  .sub-label { padding: 4px 8px 4px 28px; font-size: 11px; white-space: nowrap; min-width: 300px; max-width: 360px; color: #6b6560; }
+  .sub-label .sub-name-row { display: flex; align-items: center; gap: 5px; }
   .sub-label .sub-name { font-weight: 400; }
-  .section-row td { padding: 6px 8px 2px; font-size: 11px; font-weight: 600; color: #8a8478; border-bottom: none; letter-spacing: 0.5px; }
+  .sub-label .sub-name.done-text { text-decoration: line-through; color: #b8b0a4; }
+
+  /* ---- Progress ---- */
+  .progress-wrap { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  .progress-bar-bg { width: 60px; height: 6px; background: #e5e0d5; border-radius: 3px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .progress-text { font-size: 10px; color: #8a8478; }
+
+  /* ---- Checkbox ---- */
+  .task-cb { width: 15px; height: 15px; cursor: pointer; accent-color: #16a34a; flex-shrink: 0; }
+  .sub-cb { width: 13px; height: 13px; cursor: pointer; accent-color: #16a34a; flex-shrink: 0; }
+
+  /* ---- Section rows ---- */
+  .section-row td { padding: 6px 8px 2px; font-size: 11px; font-weight: 600; color: #8a8478; border-bottom: none; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
+  .section-row td:hover { color: #2d2a24; }
+  .section-toggle { display: inline-block; transition: transform 0.2s; margin-right: 4px; font-size: 10px; }
+  .section-toggle.collapsed { transform: rotate(-90deg); }
+
+  /* ---- Timeline ---- */
   .timeline-cell { padding: 4px 0; height: 36px; position: relative; }
   .sub-timeline { padding: 2px 0; height: 24px; position: relative; }
   .bar { height: 22px; border-radius: 4px; position: absolute; top: 7px; min-width: 6px; cursor: pointer; transition: opacity 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
   .bar:hover { opacity: 0.85; }
   .sub-bar { height: 14px; border-radius: 3px; position: absolute; top: 5px; min-width: 4px; opacity: 0.6; }
-  .today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; z-index: 10; }
+  .today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #1e3a5f; z-index: 10; }
   .date-header { font-size: 10px; text-align: center; min-width: 32px; width: 32px; }
-  .date-header.today { color: #dc2626; font-weight: 700; }
+  .date-header.today { color: #1e3a5f; font-weight: 700; }
   .date-header.weekend-header { color: #b8b0a4; }
-  .tooltip { display: none; position: fixed; background: #fffdf8; border: 1px solid #d5d0c5; border-radius: 8px; padding: 12px; font-size: 12px; z-index: 100; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #2d2a24; }
+  .tooltip { display: none; position: fixed; background: #fffdf8; border: 1px solid #d5d0c5; border-radius: 8px; padding: 12px; font-size: 12px; z-index: 100; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #2d2a24; pointer-events: none; }
   .tooltip .tt-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; color: #1a1814; }
   .tooltip .tt-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 3px; }
   .tooltip .tt-label { color: #8a8478; }
   .hold { background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 6px) !important; }
 
-  .cat-exit { color: #dc2626; }
+  .cat-exit { color: #1e3a5f; }
   .cat-finance { color: #b45309; }
   .cat-flycka { color: #7c3aed; }
   .cat-sales { color: #2563eb; }
 
-  .bar-exit, .sub-bar-exit { background: linear-gradient(90deg, #ef4444, #dc2626); }
+  .bar-exit, .sub-bar-exit { background: linear-gradient(90deg, #2d4a6f, #1e3a5f); }
   .bar-finance, .sub-bar-finance { background: linear-gradient(90deg, #f59e0b, #d97706); }
   .bar-flycka, .sub-bar-flycka { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
   .bar-sales, .sub-bar-sales { background: linear-gradient(90deg, #3b82f6, #2563eb); }
   .bar-hold { background: #9ca3af; }
-  .bar-recurring { background: repeating-linear-gradient(90deg, #6366f1 0px, #6366f1 4px, transparent 4px, transparent 8px); border: 1px solid #6366f1; }
-  .bar-today, .sub-bar-today { background: linear-gradient(90deg, #dc2626, #b91c1c); box-shadow: 0 1px 4px rgba(220,38,38,0.3); }
+  .bar-recurring { background: #6366f1; opacity: 0.7; border-radius: 4px; box-shadow: 0 1px 2px rgba(99,102,241,0.3); }
+  .bar-today, .sub-bar-today { background: linear-gradient(90deg, #1e3a5f, #152a45); box-shadow: 0 1px 4px rgba(30,58,95,0.3); }
   .sub-bar-today { opacity: 0.7; }
-  .bar-done { background: #a3a39a; opacity: 0.5; }
+  .bar-done { background: #a3a39a !important; opacity: 0.5; box-shadow: none; }
+  .sub-bar-done { background: #a3a39a !important; opacity: 0.4; }
 
   tr.sub-row td { border-bottom: 1px solid #f2efe8; }
+  tr.hidden-row { display: none; }
+
+  /* ===== Focus / 重要論点 Dashboard ===== */
+  .focus-dashboard { background: linear-gradient(135deg, #1e3a5f 0%, #152a45 100%); color: #fff; border-radius: 12px; padding: 24px 28px; margin-bottom: 16px; }
+  .focus-dashboard.collapsed .focus-body { display: none; }
+  .focus-week { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .focus-week-date { font-size: 18px; font-weight: 700; }
+  .focus-week-phase { display: inline-block; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .focus-week-progress { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+  .focus-section-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+  .focus-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .focus-item { display: flex; align-items: center; gap: 12px; background: #faf8f3; color: #2d2a24; border-radius: 8px; padding: 12px 16px; transition: background 0.15s; }
+  .focus-item:hover { background: #f5f2eb; }
+  .focus-item.priority-high { border-left: 3px solid #ef4444; background: #fef7f7; }
+  .focus-item.priority-mid  { border-left: 3px solid #f59e0b; }
+  .focus-item.priority-low  { border-left: 3px solid #d5d0c5; }
+  .focus-item-handle { cursor: grab; color: #b0a99e; font-size: 16px; user-select: none; flex-shrink: 0; padding: 0 2px; }
+  .focus-item-handle:active { cursor: grabbing; }
+  .focus-item-priority { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer; user-select: none; flex-shrink: 0; transition: all 0.15s; }
+  .focus-item-priority:hover { transform: scale(1.1); }
+  .focus-item-priority.p-high { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+  .focus-item-priority.p-mid  { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
+  .focus-item-priority.p-low  { background: #f5f2eb; color: #8a8478; border: 1px solid #d5d0c5; }
+  .focus-item.sortable-ghost { opacity: 0.4; }
+  .focus-item.sortable-chosen { box-shadow: 0 0 0 2px rgba(30,58,95,0.3); }
+  .focus-reset-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); font-size: 11px; padding: 2px 10px; border-radius: 12px; cursor: pointer; transition: all 0.15s; }
+  .focus-reset-btn:hover { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); }
+  .focus-item-check { width: 20px; height: 20px; border: 2px solid #b0a99e; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #2d2a24; cursor: pointer; transition: all 0.15s; }
+  .focus-item-check:hover:not(.done) { border-color: #6b6560; }
+  .focus-item-check.done { background: #10b981; border-color: #10b981; color: #fff; }
+  .sub-check { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; min-width: 16px; border: 1.5px solid #b0a99e; border-radius: 3px; font-size: 10px; color: #2d2a24; transition: all 0.15s; }
+  .sub-check.done { background: #10b981; border-color: #10b981; color: #fff; }
+  .sub-item { cursor: pointer; transition: opacity 0.15s; }
+  .sub-item:hover .sub-check:not(.done) { border-color: #6b6560; }
+  .focus-item-text { flex: 1; font-size: 14px; font-weight: 500; color: #2d2a24; }
+  .focus-item-tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .tag-arrow-1 { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+  .tag-arrow-2 { background: #ede9fe; color: #7c3aed; border: 1px solid #c4b5fd; }
+  .tag-arrow-3 { background: #dbeafe; color: #2563eb; border: 1px solid #93c5fd; }
+  .tag-base { background: #e0e7ef; color: #1e3a5f; border: 1px solid #b0c4de; }
+
+  .focus-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .focus-kpi-item { background: rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px; text-align: center; }
+  .focus-kpi-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+  .focus-kpi-value { font-size: 14px; font-weight: 700; }
+  .focus-kpi-value .current { color: rgba(255,255,255,0.9); }
+  .focus-kpi-value .arrow { color: rgba(255,255,255,0.4); margin: 0 4px; font-size: 11px; }
+  .focus-kpi-value .target { color: #6ee7b7; }
+
+  /* Focus Item Notes */
+  .focus-item-note-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.4; padding: 0 2px; flex-shrink: 0; line-height: 1; transition: opacity 0.15s; align-self: flex-start; margin-top: 1px; }
+  .focus-item-note-btn:hover { opacity: 0.9; }
+  .focus-item-note-btn.has-note { opacity: 0.85; color: #f59e0b; }
+  .focus-item-notes-area { display: none; width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); }
+  .focus-item-notes-area.open { display: block; }
+  .focus-item-notes-area textarea { width: 100%; min-height: 60px; background: #fff; border: 1px solid #d5d0c5; border-radius: 6px; padding: 8px 10px; font-size: 12px; font-family: 'Segoe UI','Meiryo',sans-serif; color: #2d2a24; resize: vertical; outline: none; line-height: 1.6; }
+  .focus-item-notes-area textarea:focus { border-color: #1e3a5f; }
+  .focus-item-notes-area textarea::placeholder { color: #b0a99e; }
+
+  /* Focus collapse button */
+  .focus-collapse-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); font-size: 12px; padding: 2px 12px; border-radius: 12px; cursor: pointer; transition: all 0.15s; margin-left: auto; }
+  .focus-collapse-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+  /* Gantt link badge (task progress) */
+  .gantt-link-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #6b6560; margin-left: 8px; }
+  .gantt-link-badge .glb-bar { width: 40px; height: 6px; background: #e5e0d5; border-radius: 3px; overflow: hidden; }
+  .gantt-link-badge .glb-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+
+  /* Sub-navigation (page sections) */
+  .sub-nav { display: flex; gap: 8px; margin-bottom: 16px; }
+  .sub-nav a { display: inline-block; padding: 4px 12px; border-radius: 5px; border: 1px solid #d5d0c5; font-size: 12px; color: #6b6560; text-decoration: none; transition: all 0.15s; }
+  .sub-nav a:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; text-decoration: none; }
+  .sub-nav a.sub-active { background: #f0f4f8; border-color: #1e3a5f; color: #1e3a5f; font-weight: 600; }
+
+  @media (max-width: 768px) {
+    .focus-dashboard { padding: 16px 18px; }
+    .focus-week { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .focus-kpi { grid-template-columns: 1fr 1fr; }
+    .focus-item { flex-wrap: wrap; }
+    .focus-item-tag { margin-left: 32px; }
+    .focus-item-notes-area { width: 100%; }
+  }
 </style>
 </head>
 <body>
 
+<!-- Fixed Header Navigation -->
+<div class="fixed-header">
+  <div class="fixed-header-title">経営ダッシュボード</div>
+  <div class="fixed-header-nav">
+    <a href="goal-plan.html">事業計画</a>
+    <a href="gantt.html" class="nav-active">タスク管理</a>
+    <a href="../backoffice/cashflow/dashboard.html">管理会計</a>
+    <a href="../backoffice/cashflow/ss_dashboard.html">予実管理</a>
+  </div>
+</div>
+
 <h1>タスク管理 ガントチャート</h1>
-<p class="subtitle">2026年3月 — 最終更新: 3/4（水）</p>
-<div class="goal-banner">🎯 最上流ゴール: 2026年12月 株式売却 3億円以上</div>
+<p class="subtitle" id="subtitle"></p>
+<a href="goal-plan.html" class="goal-banner-link"><div class="goal-banner">🎯 Top-Level Goal: Dec 2026 — Equity Exit ¥300M+</div></a>
+
+<!-- Sub-navigation -->
+<div class="sub-nav" id="sub-nav">
+  <a href="#focus-dashboard" class="sub-active">重要論点</a>
+  <a href="#gantt-section">ガントチャート</a>
+</div>
+
+<!-- ============================================ -->
+<!-- 重要論点 ダッシュボード -->
+<!-- ============================================ -->
+<div class="focus-dashboard" id="focus-dashboard">
+  <div style="display:flex;align-items:center;">
+    <div class="focus-week" id="focus-header" style="flex:1;margin-bottom:0;padding-bottom:0;border-bottom:none;"></div>
+    <button class="focus-collapse-btn" id="focus-collapse-btn">折りたたむ</button>
+  </div>
+  <div class="focus-body" id="focus-body">
+    <div style="border-top:1px solid rgba(255,255,255,0.15);margin:16px 0;"></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="focus-section-title" style="margin-bottom:0;">重要論点</div>
+      <button class="focus-reset-btn" id="focus-reset" title="並び順と優先度をデフォルトに戻す">リセット</button>
+    </div>
+    <div style="height:12px;"></div>
+    <div class="focus-items" id="focus-items"></div>
+    <div class="focus-section-title">KPI スナップショット</div>
+    <div class="focus-kpi" id="focus-kpi"></div>
+  </div>
+</div>
+
+<div id="gantt-section"></div>
+<div class="controls">
+  <span class="filter-group-label">フィルタ:</span>
+  <div class="filter-group" id="filters">
+    <button class="filter-btn active" data-cat="exit"><span class="dot" style="background:#1e3a5f"></span>イグジット</button>
+    <button class="filter-btn active" data-cat="finance"><span class="dot" style="background:#f59e0b"></span>経営・財務</button>
+    <button class="filter-btn active" data-cat="flycka"><span class="dot" style="background:#8b5cf6"></span>FLYCKA</button>
+    <button class="filter-btn active" data-cat="sales"><span class="dot" style="background:#3b82f6"></span>営業代行</button>
+    <button class="filter-btn active" data-cat="hold"><span class="dot" style="background:#9ca3af"></span>保留</button>
+  </div>
+  <span class="filter-group-label" style="margin-left:12px">表示:</span>
+  <div class="filter-group">
+    <button class="filter-btn" id="hide-done-btn"><span class="dot" style="background:#16a34a"></span>完了を非表示</button>
+  </div>
+</div>
 
 <div class="legend">
-  <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div>★イグジット直結</div>
-  <div class="legend-item"><div class="legend-color" style="background:#dc2626"></div>今日完了必須</div>
+  <div class="legend-item"><div class="legend-color" style="background:#6366f1"></div>定常タスク</div>
+  <div class="legend-item"><div class="legend-color" style="background:#1e3a5f"></div>★イグジット直結</div>
+  <div class="legend-item"><div class="legend-color" style="background:#152a45"></div>今日完了必須</div>
   <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div>経営・財務</div>
   <div class="legend-item"><div class="legend-color" style="background:#8b5cf6"></div>FLYCKA（D2C）</div>
   <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div>営業代行</div>
   <div class="legend-item"><div class="legend-color" style="background:#9ca3af"></div>保留</div>
-  <div class="legend-item"><div style="width:2px;height:14px;background:#dc2626"></div>今日ライン</div>
+  <div class="legend-item"><div style="width:2px;height:14px;background:#1e3a5f"></div>今日ライン</div>
 </div>
 
 <div class="gantt-container">
@@ -79,150 +270,234 @@
 
 <div class="tooltip" id="tooltip"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 <script>
-const TODAY = new Date(2026, 2, 4);
+// ---- Auto-detect today ----
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0);
+
 const START = new Date(2026, 2, 3);
 const END = new Date(2026, 2, 31);
 const CELL = 32;
+const STORAGE_KEY = 'gantt-task-state';
+let hideDone = false;
 
 const DAYS = [];
 for (let d = new Date(START); d <= END; d.setDate(d.getDate() + 1)) DAYS.push(new Date(d));
 const DOW = ['日','月','火','水','木','金','土'];
 
+// ---- Subtitle auto-update ----
+document.getElementById('subtitle').textContent =
+  `2026年3月 — 最終更新: ${TODAY.getMonth()+1}/${TODAY.getDate()}（${DOW[TODAY.getDay()]}）`;
+
+// ---- State persistence ----
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+let taskState = loadState();
+
+function isTaskDone(taskId) { return !!taskState[taskId]; }
+function isSubDone(taskId, subIdx) { return !!taskState[taskId + '_s' + subIdx]; }
+function toggleTask(taskId) { taskState[taskId] = !taskState[taskId]; saveState(taskState); }
+function toggleSub(taskId, subIdx) { const k = taskId + '_s' + subIdx; taskState[k] = !taskState[k]; saveState(taskState); }
+
+// ---- Section collapse state ----
+const COLLAPSE_KEY = 'gantt-collapse';
+function loadCollapse() { try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {}; } catch { return {}; } }
+function saveCollapse(s) { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(s)); }
+let collapseState = loadCollapse();
+
+// ---- Filter state ----
+const activeFilters = new Set(['exit', 'finance', 'flycka', 'sales', 'hold']);
+
 const sections = [
-  { id: 'today', label: '🚨 今日（3/4）— 絶対完了' },
+  { id: 'recurring', label: '🔄 定常タスク（週次サイクル）' },
+  { id: 'today', label: '🚨 今日 — 絶対完了' },
   { id: 'exit-week', label: '🎯 今週 — イグジット直結' },
-  { id: 'week', label: '🔴 今週（〜3/7）' },
+  { id: 'week', label: '🔴 今週' },
   { id: 'exit-next', label: '🎯 来週 — イグジット直結' },
   { id: 'next', label: '🟡 来週（3/10〜3/14）' },
   { id: 'exit-later', label: '🎯 今月後半 — イグジット直結' },
   { id: 'later', label: '🔵 今月後半' },
-  { id: 'hold', label: '⏸ 保留' },
+  { id: 'hold', label: '⏸ 保留（再評価: 3/21）' },
+];
+
+const recurringTasks = [
+  { sec: 'recurring', name: '月: 週次計画 + 定例準備', dow: 1, status: '定常・毎週月曜' },
+  { sec: 'recurring', name: '火: クライアント定例', dow: 2, status: '定常・毎週火曜' },
+  { sec: 'recurring', name: '金: Meta広告レビュー', dow: 5, status: '定常・毎週金曜' },
+  { sec: 'recurring', name: '金: OP稼働確認', dow: 5, status: '定常・毎週金曜' },
+  { sec: 'recurring', name: '金: 週次振り返り', dow: 5, status: '定常・毎週金曜' },
 ];
 
 const tasks = [
-  // 🚨 今日
-  { sec: 'today', cat: 'flycka', name: '✅ 新クリエイティブ制作体制', start: '2026-03-04', end: '2026-03-04', status: '完了', today: true, done: true, subs: [] },
-  { sec: 'today', cat: 'flycka', name: '✅ インフルエンサー施策立ち上げ', start: '2026-03-04', end: '2026-03-04', status: '完了', today: true, done: true, subs: [] },
-  { sec: 'today', cat: 'sales', name: 'イルグルム案件開始', start: '2026-03-04', end: '2026-03-04', status: '未着手', today: true,
+  // ---- 🚨 今日（3/6 金）----
+  // 経営・財務
+  { id: 'n01', sec: 'today', cat: 'finance', name: '★ 資金繰り状況確認（定常）', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true,
     subs: [
-      { name: '案件概要・ターゲット確認', start: '2026-03-04', end: '2026-03-04' },
-      { name: 'リスト準備', start: '2026-03-04', end: '2026-03-04' },
-      { name: 'TS作成', start: '2026-03-04', end: '2026-03-04' },
-      { name: 'OP割当・稼働開始', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'ClaudeCodeで資金繰り管理を自動化', start: '2026-03-06', end: '2026-03-06' },
+      { name: 'freee会計の口座残高が最新か確認', start: '2026-03-06', end: '2026-03-06' },
     ]},
-  { sec: 'today', cat: 'sales', name: 'hypex定例準備', start: '2026-03-04', end: '2026-03-04', status: '未着手', today: true,
+  { id: 'n02', sec: 'today', cat: 'finance', name: '★ 2月実績締め作業', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n03', sec: 'today', cat: 'finance', name: '★ 請求書発行依頼', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true,
     subs: [
-      { name: '実績・成果データ集計', start: '2026-03-04', end: '2026-03-04' },
-      { name: 'KPI達成状況整理', start: '2026-03-04', end: '2026-03-04' },
-      { name: '課題と改善提案', start: '2026-03-04', end: '2026-03-04' },
-      { name: '定例資料作成', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'URL送付形式にする', start: '2026-03-06', end: '2026-03-06' },
     ]},
-  { sec: 'today', cat: 'finance', name: '資金調達準備', start: '2026-03-04', end: '2026-03-04', status: '未着手', today: true,
+  { id: 'n04', sec: 'today', cat: 'finance', name: '★ デッドファイナンス準備', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  // FLYCKA
+  { id: 'n05', sec: 'today', cat: 'flycka', name: '日次レポートレビュー（定常）', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n06', sec: 'today', cat: 'flycka', name: '★ 週次レポートレビュー', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n07', sec: 'today', cat: 'flycka', name: 'クリエイティブ作成：CC確認', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n08', sec: 'today', cat: 'flycka', name: 'キャリア決済の実装', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true,
     subs: [
-      { name: '必要調達額を算出', start: '2026-03-04', end: '2026-03-04' },
-      { name: '調達手段の候補整理', start: '2026-03-04', end: '2026-03-04' },
-      { name: '申請書類リスト作成', start: '2026-03-04', end: '2026-03-04' },
-      { name: 'PL・BSをfreeeから出力', start: '2026-03-04', end: '2026-03-04' },
+      { name: 'GMOイプシロンの審査対応', start: '2026-03-06', end: '2026-03-06' },
+      { name: '固定電話作成', start: '2026-03-06', end: '2026-03-06' },
+    ]},
+  { id: 'n09', sec: 'today', cat: 'flycka', name: 'インフルエンサー施策', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true,
+    subs: [
+      { name: 'インフルエンサーへ返信', start: '2026-03-06', end: '2026-03-06' },
+    ]},
+  { id: 'n10', sec: 'today', cat: 'flycka', name: 'TikTok Shop検討', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  // 営業代行
+  { id: 'n11', sec: 'today', cat: 'sales', name: 'OP稼働予定確認（定常）', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n12', sec: 'today', cat: 'sales', name: 'イルグルム：稼働開始', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n13', sec: 'today', cat: 'sales', name: 'アジピク：稼働開始 ※優先度低', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n14', sec: 'today', cat: 'sales', name: 'GMOサイン ※優先度低', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true,
+    subs: [
+      { name: 'リスト作成（池田さんPC）', start: '2026-03-06', end: '2026-03-06' },
+      { name: 'トークスクリプト作成', start: '2026-03-06', end: '2026-03-06' },
+    ]},
+  { id: 'n15', sec: 'today', cat: 'sales', name: 'クリエーション・ビュー：定例資料作成', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true, subs: [] },
+  { id: 'n16', sec: 'today', cat: 'sales', name: 'hypex：定例実施', start: '2026-03-06', end: '2026-03-06', status: '未着手', today: true,
+    subs: [
+      { name: 'アポ獲得報告', start: '2026-03-06', end: '2026-03-06' },
     ]},
 
-  // 🎯 今週イグジット直結
-  { sec: 'exit-week', cat: 'exit', name: '★ M&Aアドバイザーリサーチ', start: '2026-03-04', end: '2026-03-07', status: '未着手', pillar: '柱5: M&Aプロセス',
+  // ---- 🎯 今週 — イグジット直結 ----
+  { id: 'n18', sec: 'exit-week', cat: 'exit', name: '★ LINE CRM開設・設計', start: '2026-03-06', end: '2026-03-07', status: '未着手', pillar: '柱2: リピート率改善',
     subs: [
-      { name: '3社以上リストアップ', start: '2026-03-04', end: '2026-03-05' },
-      { name: '手数料・実績・得意領域比較', start: '2026-03-05', end: '2026-03-06' },
-      { name: '面談アポ取り', start: '2026-03-06', end: '2026-03-07' },
-    ]},
-  { sec: 'exit-week', cat: 'exit', name: '★ LINE CRM開設・設計', start: '2026-03-04', end: '2026-03-07', status: '未着手', pillar: '柱2: リピート率改善',
-    subs: [
-      { name: 'LINE公式アカウント開設', start: '2026-03-04', end: '2026-03-05' },
-      { name: 'Shopify連携ツール選定', start: '2026-03-05', end: '2026-03-06' },
-      { name: '自動メッセージフロー設計', start: '2026-03-06', end: '2026-03-07' },
+      { name: 'LINE公式アカウント開設', start: '2026-03-06', end: '2026-03-06' },
+      { name: 'Shopify連携ツール選定', start: '2026-03-06', end: '2026-03-07' },
+      { name: '自動メッセージフロー設計', start: '2026-03-07', end: '2026-03-07' },
     ]},
 
-  // 🔴 今週
-  { sec: 'week', cat: 'finance', name: '税理士からの質問対応', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+  // ---- 🔴 今週 ----
+  { id: 'n19', sec: 'week', cat: 'finance', name: '税理士からの質問対応', start: '2026-03-06', end: '2026-03-07', status: '未着手',
     subs: [
-      { name: 'freeeからデータ抽出', start: '2026-03-04', end: '2026-03-05' },
-      { name: '質問リスト確認・整理', start: '2026-03-05', end: '2026-03-06' },
-      { name: '回答作成・送付', start: '2026-03-06', end: '2026-03-07' },
+      { name: 'freeeからデータ抽出', start: '2026-03-06', end: '2026-03-06' },
+      { name: '質問リスト確認・整理', start: '2026-03-06', end: '2026-03-07' },
+      { name: '回答作成・送付', start: '2026-03-07', end: '2026-03-07' },
     ]},
-  { sec: 'week', cat: 'finance', name: '2期分資料格納', start: '2026-03-04', end: '2026-03-07', status: '未着手',
+  { id: 'n20', sec: 'week', cat: 'finance', name: '2期分資料格納', start: '2026-03-06', end: '2026-03-07', status: '未着手',
     subs: [
-      { name: '銀行入出金明細DL', start: '2026-03-04', end: '2026-03-05' },
-      { name: 'UPSIDER履歴エクスポート', start: '2026-03-05', end: '2026-03-06' },
-      { name: 'フォルダ整理・格納', start: '2026-03-06', end: '2026-03-07' },
+      { name: '銀行入出金明細DL', start: '2026-03-06', end: '2026-03-06' },
+      { name: 'UPSIDER履歴エクスポート', start: '2026-03-06', end: '2026-03-07' },
+      { name: 'フォルダ整理・格納', start: '2026-03-07', end: '2026-03-07' },
     ]},
-  { sec: 'week', cat: 'flycka', name: 'Meta広告 週次レビュー', start: '2026-03-07', end: '2026-03-07', status: '未着手', subs: [] },
-  { sec: 'week', cat: 'flycka', name: 'キャリア決済追加', start: '2026-03-04', end: '2026-03-07', status: '未着手', subs: [] },
-  { sec: 'week', cat: 'flycka', name: 'レポート修正', start: '2026-03-04', end: '2026-03-07', status: '未着手', subs: [] },
-  { sec: 'week', cat: 'flycka', name: 'ダッシュボード修正', start: '2026-03-04', end: '2026-03-07', status: '未着手', subs: [] },
-  { sec: 'week', cat: 'sales', name: 'OP稼働予定確認', start: '2026-03-04', end: '2026-03-07', status: '未着手', subs: [] },
-  { sec: 'week', cat: 'sales', name: '稼働リソース確認', start: '2026-03-04', end: '2026-03-07', status: '未着手', subs: [] },
-  { sec: 'week', cat: 'sales', name: 'アジピク稼働開始', start: '2026-03-04', end: '2026-03-07', status: '未着手', subs: [] },
-  { sec: 'week', cat: 'sales', name: 'hypex停止判断', start: '2026-03-06', end: '2026-03-07', status: '未着手', subs: [] },
+  { id: 'n21', sec: 'week', cat: 'flycka', name: 'レポート修正', start: '2026-03-06', end: '2026-03-07', status: '未着手', subs: [] },
+  { id: 'n22', sec: 'week', cat: 'flycka', name: 'ダッシュボード修正', start: '2026-03-06', end: '2026-03-07', status: '未着手', subs: [] },
+  { id: 'n23', sec: 'week', cat: 'sales', name: '稼働リソース確認', start: '2026-03-06', end: '2026-03-07', status: '未着手', subs: [] },
 
-  // 🎯 来週イグジット直結
-  { sec: 'exit-next', cat: 'exit', name: '★ M&Aアドバイザー面談（1社目）', start: '2026-03-10', end: '2026-03-14', status: '未着手', pillar: '柱5: M&Aプロセス',
-    subs: [
-      { name: '面談実施', start: '2026-03-10', end: '2026-03-12' },
-      { name: '候補絞り込み', start: '2026-03-12', end: '2026-03-13' },
-      { name: '2社目以降セット', start: '2026-03-13', end: '2026-03-14' },
-    ]},
-  { sec: 'exit-next', cat: 'exit', name: '★ Shopify顧客データ分析', start: '2026-03-10', end: '2026-03-14', status: '未着手', pillar: '柱2: リピート率把握',
+  // ---- 来週以降（変更なし） ----
+  { id: 't17', sec: 'exit-next', cat: 'exit', name: '★ Shopify顧客データ分析', start: '2026-03-10', end: '2026-03-14', status: '未着手', pillar: '柱2: リピート率把握',
     subs: [
       { name: '購入履歴エクスポート', start: '2026-03-10', end: '2026-03-11' },
       { name: 'リピート率・LTV算出', start: '2026-03-11', end: '2026-03-13' },
       { name: '施策優先順位決定', start: '2026-03-13', end: '2026-03-14' },
     ]},
-  { sec: 'exit-next', cat: 'exit', name: '★ LINE CRM自動化実装', start: '2026-03-10', end: '2026-03-14', status: '未着手', pillar: '柱2: リピート率改善',
+  { id: 't18', sec: 'exit-next', cat: 'exit', name: '★ LINE CRM自動化実装', start: '2026-03-10', end: '2026-03-14', status: '未着手', pillar: '柱2: リピート率改善',
     subs: [
       { name: 'サンクスメッセージ設定', start: '2026-03-10', end: '2026-03-11' },
       { name: '7日後フォロー設定', start: '2026-03-11', end: '2026-03-12' },
       { name: '30日後リピート促進設定', start: '2026-03-12', end: '2026-03-14' },
     ]},
 
-  // 🟡 来週
-  { sec: 'next', cat: 'finance', name: '資金調達：申請実行', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
-  { sec: 'next', cat: 'flycka', name: 'クリエイティブ制作オペ化', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
-  { sec: 'next', cat: 'flycka', name: 'インフルエンサーアプローチ実行', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
-  { sec: 'next', cat: 'flycka', name: 'TikTok Shop調査', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
-  { sec: 'next', cat: 'sales', name: 'クリエーション・ビュー定例資料', start: '2026-03-07', end: '2026-03-10', status: '未着手', subs: [] },
+  // ---- 台湾越境テスト（Phase -1: ミニマルテスト） ----
+  { id: 'tw00', sec: 'exit-next', cat: 'flycka', name: '★ 台湾越境: 事前確認（ブロッカー）', start: '2026-03-14', end: '2026-03-16', status: '進行中', pillar: '柱1: 販路拡大（越境）',
+    subs: [
+      { name: '✅ 台湾輸入規制確認: HS6108/6212 →「開放」確認済み（3/13）', start: '2026-03-14', end: '2026-03-14' },
+      { name: '✅ 規制回避調査 → 不要（主力商品は全て「開放」）', start: '2026-03-14', end: '2026-03-15' },
+      { name: 'THE CKBにメール問い合わせ: 中国倉庫→台湾D2C直送の可否・料金・日数（回答待ち）', start: '2026-03-13', end: '2026-03-16' },
+      { name: 'THE CKBにメール問い合わせ: 台湾向け通関・インボイス・ラベル対応の範囲（回答待ち）', start: '2026-03-13', end: '2026-03-16' },
+      { name: '結果に基づき配送ルート決定: (A)CKB中国→台湾直送 / (B)CKB日本倉庫→EMS / (C)自社EMS発送 → 仮決定: Option A', start: '2026-03-16', end: '2026-03-16' },
+    ]},
+  { id: 'tw01', sec: 'exit-next', cat: 'flycka', name: '★ 台湾越境: Shopify設定', start: '2026-03-13', end: '2026-03-17', status: '進行中', pillar: '柱1: 販路拡大（越境）',
+    subs: [
+      { name: '✅ Shopify Markets台湾マーケット追加（TWD通貨有効化）— API確認済み（3/13）', start: '2026-03-13', end: '2026-03-13' },
+      { name: '✅ Shopify Payments海外カード手数料確認（5.4%）', start: '2026-03-13', end: '2026-03-13' },
+      { name: '✅ 配送設定: 台湾ゾーン追加（Shopping Fee NT$400 / NT$2,000以上送料無料）— 3/13確認済み', start: '2026-03-13', end: '2026-03-13' },
+      { name: '関税: DDU設定確認（免税枠TWD2,000以下＝単品は関税ゼロ）', start: '2026-03-17', end: '2026-03-17' },
+      { name: '✅ 価格: パターンB決定（為替換算のまま＋NT$2,000以上送料無料）— 3/13設定済み', start: '2026-03-13', end: '2026-03-13' },
+    ]},
+  { id: 'tw02', sec: 'exit-next', cat: 'flycka', name: '★ 台湾越境: Meta広告設定', start: '2026-03-16', end: '2026-03-18', status: '未着手', pillar: '柱1: 販路拡大（越境）',
+    subs: [
+      { name: 'Pixel通貨コード動的化（JPY→TWD対応）', start: '2026-03-16', end: '2026-03-16' },
+      { name: 'CAPI設定確認（Shopify×Meta連携）', start: '2026-03-16', end: '2026-03-17' },
+      { name: 'ASCキャンペーン作成（台湾向け、日本除外）', start: '2026-03-17', end: '2026-03-18' },
+      { name: '勝ちクリエイティブ3〜5本選定', start: '2026-03-17', end: '2026-03-17' },
+      { name: '予算設定（日予算2,500円、ブロード）', start: '2026-03-18', end: '2026-03-18' },
+    ]},
+  { id: 'tw03', sec: 'exit-next', cat: 'flycka', name: '★ 台湾越境: 物流・オペ準備', start: '2026-03-17', end: '2026-03-18', status: '未着手', pillar: '柱1: 販路拡大（越境）',
+    subs: [
+      { name: 'EMS発送フロー確立（受注→梱包→伝票→発送）', start: '2026-03-17', end: '2026-03-17' },
+      { name: '税関申告書テンプレ作成（HS番号・英語表記）', start: '2026-03-17', end: '2026-03-18' },
+      { name: 'CSテンプレート準備（繁体字: 注文確認・発送通知・遅延）', start: '2026-03-18', end: '2026-03-18' },
+    ]},
+  { id: 'tw04', sec: 'exit-next', cat: 'flycka', name: '★ 台湾越境: モニタリング準備', start: '2026-03-18', end: '2026-03-18', status: '未着手', pillar: '柱1: 販路拡大（越境）',
+    subs: [
+      { name: 'KPIトラッキングシート作成（imp/CTR/CPC/CVR/CPA/ROAS）', start: '2026-03-18', end: '2026-03-18' },
+      { name: 'Shopee台湾で同一デザイン出品調査（競合価格確認）', start: '2026-03-18', end: '2026-03-18' },
+      { name: 'Go/No-Go判断基準の最終確定', start: '2026-03-18', end: '2026-03-18' },
+    ]},
 
-  // 🎯 今月後半イグジット直結
-  { sec: 'exit-later', cat: 'exit', name: '★ M&Aアドバイザー選定・契約', start: '2026-03-17', end: '2026-03-28', status: '未着手', pillar: '柱5: M&Aプロセス',
+  { id: 't19', sec: 'next', cat: 'finance', name: '資金調達：申請実行', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
+  { id: 't20', sec: 'next', cat: 'flycka', name: 'クリエイティブ制作オペ化', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
+  { id: 't21', sec: 'next', cat: 'flycka', name: 'インフルエンサーアプローチ実行', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
+  { id: 't22', sec: 'next', cat: 'flycka', name: 'TikTok Shop調査', start: '2026-03-10', end: '2026-03-14', status: '未着手', subs: [] },
+  { id: 't28', sec: 'next', cat: 'flycka', name: 'ハッピーバッグ企画・実装', start: '2026-03-10', end: '2026-03-14', status: '未着手',
     subs: [
-      { name: '2〜3社面談完了', start: '2026-03-17', end: '2026-03-21' },
-      { name: '条件比較', start: '2026-03-21', end: '2026-03-25' },
-      { name: '契約締結', start: '2026-03-25', end: '2026-03-28' },
+      { name: '価格設定・構成決定', start: '2026-03-10', end: '2026-03-11' },
+      { name: 'クリエイティブ作成', start: '2026-03-11', end: '2026-03-13' },
+      { name: 'Shopify反映・公開', start: '2026-03-13', end: '2026-03-14' },
     ]},
-  { sec: 'exit-later', cat: 'exit', name: '★ freee会計整備（DD準備）', start: '2026-03-17', end: '2026-03-31', status: '未着手', pillar: '柱5: DD対応',
-    subs: [
-      { name: '未仕訳・不明取引洗い出し', start: '2026-03-17', end: '2026-03-21' },
-      { name: '勘定科目整理', start: '2026-03-21', end: '2026-03-25' },
-      { name: '月次推移データ整備', start: '2026-03-25', end: '2026-03-31' },
-    ]},
-  { sec: 'exit-later', cat: 'exit', name: '★ サブスク（定期購入）検討', start: '2026-03-17', end: '2026-03-28', status: '未着手', pillar: '柱2: LTV改善',
+
+  { id: 't25', sec: 'exit-later', cat: 'exit', name: '★ サブスク（定期購入）検討', start: '2026-03-17', end: '2026-03-28', status: '未着手', pillar: '柱2: LTV改善',
     subs: [
       { name: 'D2Cサブスク事例調査', start: '2026-03-17', end: '2026-03-21' },
       { name: 'Shopifyアプリ選定', start: '2026-03-21', end: '2026-03-25' },
       { name: '導入可否判断', start: '2026-03-25', end: '2026-03-28' },
     ]},
-  { sec: 'exit-later', cat: 'exit', name: '★ オペレーションマニュアル着手', start: '2026-03-23', end: '2026-03-31', status: '未着手', pillar: '柱4: 属人性排除',
+  { id: 't26', sec: 'exit-later', cat: 'exit', name: '★ オペレーションマニュアル着手', start: '2026-03-23', end: '2026-03-31', status: '未着手', pillar: '柱4: 属人性排除',
     subs: [
       { name: '広告運用手順書', start: '2026-03-23', end: '2026-03-27' },
       { name: '仕入・在庫フロー', start: '2026-03-27', end: '2026-03-31' },
       { name: 'OP管理フロー', start: '2026-03-27', end: '2026-03-31' },
     ]},
 
-  // 🔵 今月後半
-  { sec: 'later', cat: 'finance', name: '経営管理自動化', start: '2026-03-17', end: '2026-03-21', status: '未着手', subs: [] },
+  { id: 'tw05', sec: 'exit-later', cat: 'flycka', name: '★ 台湾越境テスト: 広告配信・検証（2週間）', start: '2026-03-19', end: '2026-03-31', status: '未着手', pillar: '柱1: 販路拡大（越境）',
+    subs: [
+      { name: 'Meta ASC越境広告 配信開始', start: '2026-03-19', end: '2026-03-19' },
+      { name: '日次KPI計測・広告コメント欄監視', start: '2026-03-19', end: '2026-03-31' },
+      { name: '注文対応（EMS直送）', start: '2026-03-19', end: '2026-03-31' },
+      { name: '中間レビュー（1週間後）', start: '2026-03-26', end: '2026-03-26' },
+      { name: 'Go/No-Go判断', start: '2026-03-31', end: '2026-03-31' },
+    ]},
 
-  // 保留
-  { sec: 'hold', cat: 'sales', name: 'GMOサイン：リスト作成', start: '2026-03-04', end: '2026-03-04', status: '保留', hold: true, subs: [] },
-  { sec: 'hold', cat: 'sales', name: 'GMOサイン：TS作成', start: '2026-03-04', end: '2026-03-04', status: '保留', hold: true, subs: [] },
+  { id: 't27', sec: 'later', cat: 'finance', name: '経営管理自動化', start: '2026-03-17', end: '2026-03-21', status: '未着手', subs: [] },
 ];
 
+// ---- Init forceDone tasks in state ----
+tasks.forEach(t => {
+  if (t.forceDone && !taskState[t.id]) {
+    taskState[t.id] = true;
+    saveState(taskState);
+  }
+});
+
+// ---- Helpers ----
 function d(s) { return new Date(s + 'T00:00:00'); }
 function dayIdx(date) { return Math.round((new Date(date) - START) / 86400000); }
 function isWeekend(date) { const dow = date.getDay(); return dow === 0 || dow === 6; }
@@ -238,110 +513,722 @@ function addTodayLine(cell) {
   }
 }
 
-function showTooltip(e, task, startD, endD) {
+function getProgress(task) {
+  if (!task.subs || task.subs.length === 0) return null;
+  const total = task.subs.length;
+  let done = 0;
+  task.subs.forEach((_, i) => { if (isSubDone(task.id, i)) done++; });
+  return { done, total, pct: Math.round(done / total * 100) };
+}
+
+function getProgressColor(pct) {
+  if (pct === 100) return '#16a34a';
+  if (pct >= 50) return '#f59e0b';
+  return '#1e3a5f';
+}
+
+// ---- Tooltip ----
+function showTooltip(e, name, status, extra) {
   const tt = document.getElementById('tooltip');
-  let subsHtml = task.subs && task.subs.length > 0 ? '<div style="margin-top:8px;border-top:1px solid #d5d0c5;padding-top:6px">' +
-    task.subs.map(s => `<div style="margin-top:2px">☐ ${s.name}</div>`).join('') + '</div>' : '';
-  let pillarHtml = task.pillar ? `<div class="tt-row"><span class="tt-label">イグジット:</span><span>${task.pillar}</span></div>` : '';
-  tt.innerHTML = `<div class="tt-title">${task.name}</div>` +
-    `<div class="tt-row"><span class="tt-label">期間:</span><span>${fmtDate(startD)} → ${fmtDate(endD)}</span></div>` +
-    `<div class="tt-row"><span class="tt-label">ステータス:</span><span>${task.status}</span></div>` +
-    pillarHtml + subsHtml;
+  tt.innerHTML = `<div class="tt-title">${name}</div>` +
+    `<div class="tt-row"><span class="tt-label">ステータス:</span><span>${status}</span></div>` +
+    (extra || '');
   tt.style.display = 'block';
   tt.style.left = (e.clientX + 12) + 'px';
   tt.style.top = (e.clientY - 10) + 'px';
 }
 
-const table = document.getElementById('gantt');
+function showTaskTooltip(e, task, startD, endD) {
+  const prog = getProgress(task);
+  const progHtml = prog ? `<div class="tt-row"><span class="tt-label">進捗:</span><span>${prog.done}/${prog.total}（${prog.pct}%）</span></div>` : '';
+  const subsHtml = task.subs && task.subs.length > 0 ? '<div style="margin-top:8px;border-top:1px solid #d5d0c5;padding-top:6px">' +
+    task.subs.map((s, i) => `<div style="margin-top:2px">${isSubDone(task.id, i) ? '☑' : '☐'} ${s.name}</div>`).join('') + '</div>' : '';
+  const pillarHtml = task.pillar ? `<div class="tt-row"><span class="tt-label">イグジット:</span><span>${task.pillar}</span></div>` : '';
+  const isDone = isTaskDone(task.id);
+  showTooltip(e, task.name, isDone ? '✅ 完了' : task.status,
+    `<div class="tt-row"><span class="tt-label">期間:</span><span>${fmtDate(startD)} → ${fmtDate(endD)}</span></div>` +
+    pillarHtml + progHtml + subsHtml);
+}
 
-let hdr1 = '<tr><th style="min-width:260px">タスク</th>';
-let hdr2 = '<tr><th></th>';
-DAYS.forEach(day => {
-  const isToday = day.getTime() === TODAY.getTime();
-  const we = isWeekend(day);
-  const cls = [isToday ? 'today' : '', we ? 'weekend-header' : ''].filter(Boolean).join(' ');
-  hdr1 += `<th class="date-header ${cls}">${day.getDate()}</th>`;
-  hdr2 += `<th class="date-header ${cls}" style="font-weight:400">${DOW[day.getDay()]}</th>`;
-});
-table.innerHTML = hdr1 + '</tr>' + hdr2 + '</tr>';
+// ========================================================
+// RENDER
+// ========================================================
+function render() {
+  const table = document.getElementById('gantt');
+  table.innerHTML = '';
 
-let currentSec = '';
-tasks.forEach(task => {
-  if (task.sec !== currentSec) {
-    currentSec = task.sec;
-    const secInfo = sections.find(s => s.id === currentSec);
-    const secRow = document.createElement('tr');
-    secRow.className = 'section-row';
-    secRow.innerHTML = `<td colspan="${DAYS.length + 1}">${secInfo.label}</td>`;
-    table.appendChild(secRow);
-  }
+  // ---- Header rows (sticky thead) ----
+  let hdr1 = '<thead><tr><th style="min-width:300px">タスク</th>';
+  let hdr2 = '<tr><th></th>';
+  DAYS.forEach(day => {
+    const isToday = day.getTime() === TODAY.getTime();
+    const we = isWeekend(day);
+    const cls = [isToday ? 'today' : '', we ? 'weekend-header' : ''].filter(Boolean).join(' ');
+    hdr1 += `<th class="date-header ${cls}">${day.getDate()}</th>`;
+    hdr2 += `<th class="date-header ${cls}" style="font-weight:400">${DOW[day.getDay()]}</th>`;
+  });
+  table.innerHTML = hdr1 + '</tr>' + hdr2 + '</tr></thead><tbody></tbody>';
+  const tbody = table.querySelector('tbody');
 
-  const startD = d(task.start);
-  const endD = d(task.end);
+  // ---- Recurring tasks ----
+  const recSecInfo = sections.find(s => s.id === 'recurring');
+  const recSecRow = document.createElement('tr');
+  recSecRow.className = 'section-row';
+  const isRecCollapsed = !!collapseState['recurring'];
+  recSecRow.innerHTML = `<td colspan="${DAYS.length + 1}"><span class="section-toggle ${isRecCollapsed ? 'collapsed' : ''}">▼</span>${recSecInfo.label}</td>`;
+  recSecRow.addEventListener('click', () => {
+    collapseState['recurring'] = !collapseState['recurring'];
+    saveCollapse(collapseState);
+    render();
+  });
+  tbody.appendChild(recSecRow);
 
-  const row = document.createElement('tr');
-  const labelCell = document.createElement('td');
-  labelCell.className = 'task-label';
-  const badge = task.hold ? ' <span style="color:#9ca3af;font-size:11px">⏸</span>' :
-                task.today && !task.done ? ' <span style="color:#dc2626;font-size:11px;font-weight:700">TODAY</span>' : '';
-  const pillarHtml = task.pillar ? `<div class="pillar">${task.pillar}</div>` : '';
-  labelCell.innerHTML = `<div class="name">${task.name}${badge}</div><div class="date">${fmtDate(startD)} → ${fmtDate(endD)}</div>${pillarHtml}`;
-  row.appendChild(labelCell);
+  if (!isRecCollapsed) {
+    recurringTasks.forEach(rt => {
+      const row = document.createElement('tr');
+      row.setAttribute('data-section', 'recurring');
+      const labelCell = document.createElement('td');
+      labelCell.className = 'task-label';
+      labelCell.innerHTML = `<div class="name-row"><span class="name">${rt.name} <span style="color:#6366f1;font-size:11px">🔄</span></span></div><div class="date">毎週${DOW[rt.dow]}曜</div>`;
+      row.appendChild(labelCell);
 
-  const timeCell = document.createElement('td');
-  timeCell.colSpan = DAYS.length;
-  timeCell.className = 'timeline-cell';
-  timeCell.style.position = 'relative';
+      const timeCell = document.createElement('td');
+      timeCell.colSpan = DAYS.length;
+      timeCell.className = 'timeline-cell';
+      timeCell.style.position = 'relative';
 
-  const si = dayIdx(startD), ei = dayIdx(endD);
-  const bar = document.createElement('div');
-  bar.className = 'bar';
-  if (task.done) bar.className += ' bar-done';
-  else if (task.hold) bar.className += ' bar-hold hold';
-  else if (task.today) bar.className += ' bar-today';
-  else bar.className += ` bar-${task.cat}`;
-  bar.style.left = Math.max(0, si) * CELL + 'px';
-  bar.style.width = Math.max((ei - Math.max(0, si) + 1) * CELL - 4, 8) + 'px';
+      DAYS.forEach((day, i) => {
+        if (day.getDay() === rt.dow) {
+          const bar = document.createElement('div');
+          bar.className = 'bar bar-recurring';
+          bar.style.left = (i * CELL + 2) + 'px';
+          bar.style.width = (CELL - 4) + 'px';
+          bar.addEventListener('mouseenter', e => showTooltip(e, rt.name, rt.status, ''));
+          bar.addEventListener('mousemove', e => { const tt = document.getElementById('tooltip'); tt.style.left = (e.clientX+12)+'px'; tt.style.top = (e.clientY-10)+'px'; });
+          bar.addEventListener('mouseleave', () => document.getElementById('tooltip').style.display = 'none');
+          timeCell.appendChild(bar);
+        }
+      });
 
-  bar.addEventListener('mouseenter', e => showTooltip(e, task, startD, endD));
-  bar.addEventListener('mousemove', e => { const tt = document.getElementById('tooltip'); tt.style.left = (e.clientX+12)+'px'; tt.style.top = (e.clientY-10)+'px'; });
-  bar.addEventListener('mouseleave', () => document.getElementById('tooltip').style.display = 'none');
-
-  timeCell.appendChild(bar);
-  addTodayLine(timeCell);
-  row.appendChild(timeCell);
-  table.appendChild(row);
-
-  if (task.subs && task.subs.length > 0) {
-    task.subs.forEach(sub => {
-      const subRow = document.createElement('tr');
-      subRow.className = 'sub-row';
-      const subLabel = document.createElement('td');
-      subLabel.className = 'sub-label';
-      subLabel.innerHTML = `<span class="sub-name">└ ${sub.name}</span>`;
-      subRow.appendChild(subLabel);
-
-      const subTime = document.createElement('td');
-      subTime.colSpan = DAYS.length;
-      subTime.className = 'sub-timeline';
-      subTime.style.position = 'relative';
-
-      const subStart = d(sub.start), subEnd = d(sub.end);
-      const ssi = dayIdx(subStart), sei = dayIdx(subEnd);
-      const subBar = document.createElement('div');
-      subBar.className = 'sub-bar';
-      if (task.today) subBar.className += ' sub-bar-today';
-      else subBar.className += ` sub-bar-${task.cat}`;
-      subBar.style.left = Math.max(0, ssi) * CELL + 'px';
-      subBar.style.width = Math.max((sei - Math.max(0, ssi) + 1) * CELL - 4, 4) + 'px';
-
-      subTime.appendChild(subBar);
-      addTodayLine(subTime);
-      subRow.appendChild(subTime);
-      table.appendChild(subRow);
+      addTodayLine(timeCell);
+      row.appendChild(timeCell);
+      tbody.appendChild(row);
     });
   }
+
+  // ---- Non-recurring tasks ----
+  let currentSec = 'recurring';
+  tasks.forEach(task => {
+    // Section header
+    if (task.sec !== currentSec) {
+      currentSec = task.sec;
+      const secInfo = sections.find(s => s.id === currentSec);
+      const secRow = document.createElement('tr');
+      secRow.className = 'section-row';
+      const isCollapsed = !!collapseState[currentSec];
+      secRow.innerHTML = `<td colspan="${DAYS.length + 1}"><span class="section-toggle ${isCollapsed ? 'collapsed' : ''}">▼</span>${secInfo.label}</td>`;
+      secRow.addEventListener('click', () => {
+        collapseState[task.sec] = !collapseState[task.sec];
+        saveCollapse(collapseState);
+        render();
+      });
+      tbody.appendChild(secRow);
+    }
+
+    const isSectionCollapsed = !!collapseState[task.sec];
+    if (isSectionCollapsed) return;
+
+    // Filter check
+    const taskCat = task.hold ? 'hold' : task.cat;
+    if (!activeFilters.has(taskCat)) return;
+
+    const isDone = isTaskDone(task.id);
+    if (hideDone && isDone) return;
+    const startD = d(task.start);
+    const endD = d(task.end);
+    const prog = getProgress(task);
+
+    // Task row
+    const row = document.createElement('tr');
+    row.setAttribute('data-section', task.sec);
+    row.setAttribute('data-cat', taskCat);
+    const labelCell = document.createElement('td');
+    labelCell.className = 'task-label';
+
+    const badge = task.hold ? ' <span style="color:#9ca3af;font-size:11px">⏸</span>' :
+                  task.today && !isDone ? ' <span style="color:#1e3a5f;font-size:11px;font-weight:700">TODAY</span>' : '';
+    const pillarHtml = task.pillar ? `<div class="pillar">${task.pillar}</div>` : '';
+
+    // Progress bar HTML
+    let progressHtml = '';
+    if (prog) {
+      const color = getProgressColor(prog.pct);
+      progressHtml = `<div class="progress-wrap">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${prog.pct}%;background:${color}"></div></div>
+        <span class="progress-text">${prog.done}/${prog.total}</span>
+      </div>`;
+    }
+
+    labelCell.innerHTML = `
+      <div class="name-row">
+        <input type="checkbox" class="task-cb" data-id="${task.id}" ${isDone ? 'checked' : ''}>
+        <span class="name ${isDone ? 'done-text' : ''}">${task.name}${badge}</span>
+      </div>
+      <div class="date">${fmtDate(startD)} → ${fmtDate(endD)}</div>
+      ${pillarHtml}${progressHtml}`;
+
+    // Checkbox handler
+    labelCell.querySelector('.task-cb').addEventListener('change', function(e) {
+      e.stopPropagation();
+      toggleTask(task.id);
+      // When parent is checked, check all subs too
+      if (isTaskDone(task.id) && task.subs) {
+        task.subs.forEach((_, i) => { if (!isSubDone(task.id, i)) toggleSub(task.id, i); });
+        saveState(taskState);
+      }
+      render();
+    });
+
+    row.appendChild(labelCell);
+
+    const timeCell = document.createElement('td');
+    timeCell.colSpan = DAYS.length;
+    timeCell.className = 'timeline-cell';
+    timeCell.style.position = 'relative';
+
+    const si = dayIdx(startD), ei = dayIdx(endD);
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    if (isDone) bar.className += ' bar-done';
+    else if (task.hold) bar.className += ' bar-hold hold';
+    else if (task.today) bar.className += ' bar-today';
+    else bar.className += ` bar-${task.cat}`;
+    bar.style.left = Math.max(0, si) * CELL + 'px';
+    bar.style.width = Math.max((ei - Math.max(0, si) + 1) * CELL - 4, 8) + 'px';
+
+    bar.addEventListener('mouseenter', e => showTaskTooltip(e, task, startD, endD));
+    bar.addEventListener('mousemove', e => { const tt = document.getElementById('tooltip'); tt.style.left = (e.clientX+12)+'px'; tt.style.top = (e.clientY-10)+'px'; });
+    bar.addEventListener('mouseleave', () => document.getElementById('tooltip').style.display = 'none');
+
+    timeCell.appendChild(bar);
+    addTodayLine(timeCell);
+    row.appendChild(timeCell);
+    tbody.appendChild(row);
+
+    // Sub-task rows
+    if (task.subs && task.subs.length > 0) {
+      task.subs.forEach((sub, si) => {
+        const subDone = isSubDone(task.id, si);
+        const subRow = document.createElement('tr');
+        subRow.className = 'sub-row';
+        subRow.setAttribute('data-section', task.sec);
+        subRow.setAttribute('data-cat', taskCat);
+        const subLabel = document.createElement('td');
+        subLabel.className = 'sub-label';
+        subLabel.innerHTML = `<div class="sub-name-row">
+          <input type="checkbox" class="sub-cb" data-id="${task.id}" data-sub="${si}" ${subDone ? 'checked' : ''}>
+          <span class="sub-name ${subDone ? 'done-text' : ''}">└ ${sub.name}</span>
+        </div>`;
+
+        subLabel.querySelector('.sub-cb').addEventListener('change', function(e) {
+          e.stopPropagation();
+          toggleSub(task.id, si);
+          // Auto-check parent if all subs done
+          const allDone = task.subs.every((_, j) => isSubDone(task.id, j));
+          if (allDone && !isTaskDone(task.id)) { toggleTask(task.id); }
+          // Uncheck parent if any sub unchecked
+          if (!isSubDone(task.id, si) && isTaskDone(task.id)) { toggleTask(task.id); }
+          render();
+        });
+
+        subRow.appendChild(subLabel);
+
+        const subTime = document.createElement('td');
+        subTime.colSpan = DAYS.length;
+        subTime.className = 'sub-timeline';
+        subTime.style.position = 'relative';
+
+        const subStart = d(sub.start), subEnd = d(sub.end);
+        const ssi = dayIdx(subStart), sei = dayIdx(subEnd);
+        const subBar = document.createElement('div');
+        subBar.className = 'sub-bar';
+        if (subDone) subBar.className += ' sub-bar-done';
+        else if (task.today) subBar.className += ' sub-bar-today';
+        else subBar.className += ` sub-bar-${task.cat}`;
+        subBar.style.left = Math.max(0, ssi) * CELL + 'px';
+        subBar.style.width = Math.max((sei - Math.max(0, ssi) + 1) * CELL - 4, 4) + 'px';
+
+        subTime.appendChild(subBar);
+        addTodayLine(subTime);
+        subRow.appendChild(subTime);
+        tbody.appendChild(subRow);
+      });
+    }
+  });
+}
+
+// ---- Filter button handlers ----
+document.querySelectorAll('#filters .filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cat = btn.getAttribute('data-cat');
+    if (activeFilters.has(cat)) {
+      activeFilters.delete(cat);
+      btn.classList.remove('active');
+    } else {
+      activeFilters.add(cat);
+      btn.classList.add('active');
+    }
+    render();
+  });
 });
+
+// ---- Hide done toggle ----
+document.getElementById('hide-done-btn').addEventListener('click', function() {
+  hideDone = !hideDone;
+  this.classList.toggle('active');
+  this.innerHTML = hideDone
+    ? '<span class="dot" style="background:#16a34a"></span>完了を表示'
+    : '<span class="dot" style="background:#16a34a"></span>完了を非表示';
+  render();
+});
+
+// ============================================================
+// FOCUS_DATA — 重要論点の編集はここだけ触ればOK
+// ============================================================
+const FOCUS_DATA = {
+  weekLabel: '3/10（月）〜 3/14（金）',
+  phase:     'Phase 1: 基盤構築（3〜4月）',
+  progress:  '営業利益 117万 → 189万',
+
+  items: [
+    { text: '画像生成の効率化＆品質向上',   tag: 'FLYCKA', priority: '高', taskIds: ['n07', 't20'], subs: [
+      { text: '画像素材生成', done: true },
+      { text: 'ベンチマークの収集 → ブラッシュアップ必要' },
+      { text: '量産ワークフローの確立（週10本体制の設計）' },
+    ]},
+    { text: '台湾越境テスト（Phase -1）',    tag: 'FLYCKA', priority: '高', taskIds: ['tw00', 'tw01', 'tw02', 'tw03', 'tw04', 'tw05'], subs: [
+      { text: '⚠ 輸入規制確認 + CKB問い合わせ（3/14-16）★ブロッカー' },
+      { text: 'Shopify台湾マーケット設定（3/16-17）' },
+      { text: 'Meta ASC越境広告設定（3/16-18）' },
+      { text: '物流・オペ準備（3/17-18）' },
+      { text: '広告配信開始（3/19〜）' },
+      { text: 'Go/No-Go判断（3/31）' },
+    ]},
+    { text: '既存施策の成果改善',           tag: 'FLYCKA', priority: '中', taskIds: ['n05', 'n06', 'n21', 'n22'], subs: [
+      { text: '実績状況の確認' },
+      { text: 'レポート修正・フォーマット確定' },
+      { text: 'ダッシュボード・分析観点の追加' },
+      { text: '改善アクションの特定と実行' },
+    ]},
+    { text: 'インフルエンサー施策推進',     tag: 'FLYCKA', priority: '中', taskIds: ['n09', 't21'], subs: [
+      { text: 'リスト基づきDM送付' },
+      { text: '返信対応・条件交渉' },
+      { text: '投稿スケジュール・KPI設定' },
+    ]},
+    { text: 'ハッピーバッグの立ち上げ',     tag: 'FLYCKA', priority: '中', taskIds: ['t28'], subs: [
+      { text: '価格設定・構成決定' },
+      { text: 'クリエイティブ作成' },
+      { text: 'Shopify反映' },
+    ]},
+    { text: '案件＆リソースの適切差配',     tag: 'BPO', priority: '中', taskIds: ['n12', 'n13', 'n23'], subs: [
+      { text: 'イルグルム' },
+      { text: 'アジピク' },
+      { text: 'BPO' },
+    ]},
+    { text: '資金繰り状況の把握',           tag: '経営基盤', priority: '中', taskIds: ['n01', 'n19', 'n20'], subs: [
+      { text: '原価の予実確認' },
+      { text: 'ダッシュボード作成' },
+      { text: '経理質問事項への回答' },
+    ]},
+  ],
+
+  kpis: [
+    { label: '月間営業利益', current: '117万',  target: '1,111万', highlight: true },
+    { label: 'FLYCKA広告費', current: '300万',  target: '1,139万' },
+    { label: 'ROAS（固定前提）', current: '2.2x' },
+    { label: 'BPO固定報酬案件', current: '1件',  target: '8件' },
+    { label: 'BPO人材稼働',    current: '500h',  target: '8,543h' },
+    { label: '実質キャッシュ', current: '▲50万', alert: true },
+    { label: '未払外注費', current: '879万', alert: true },
+  ],
+};
+
+// ============================================================
+// ガント連動: Focus Item に紐付くタスクの進捗を算出
+// ============================================================
+function getGanttProgress(taskIds) {
+  if (!taskIds || taskIds.length === 0) return null;
+  let done = 0;
+  taskIds.forEach(id => { if (isTaskDone(id)) done++; });
+  return { done, total: taskIds.length, pct: Math.round(done / taskIds.length * 100) };
+}
+
+function updateFocusGanttBadges() {
+  document.querySelectorAll('.focus-item[data-task-ids]').forEach(el => {
+    const ids = JSON.parse(el.getAttribute('data-task-ids') || '[]');
+    const badge = el.querySelector('.gantt-link-badge');
+    if (!badge || ids.length === 0) return;
+    const prog = getGanttProgress(ids);
+    if (!prog) return;
+    const color = prog.pct === 100 ? '#16a34a' : prog.pct >= 50 ? '#f59e0b' : '#1e3a5f';
+    badge.innerHTML = `タスク ${prog.done}/${prog.total} <span class="glb-bar"><span class="glb-fill" style="width:${prog.pct}%;background:${color}"></span></span>`;
+  });
+}
+
+// ============================================================
+// Focus レンダリング + 優先度管理 + ドラッグ&ドロップ
+// ============================================================
+(function() {
+  const TAG_CLASS = {
+    'FLYCKA':   'tag-arrow-1',
+    '新ブランド': 'tag-arrow-2',
+    'BPO':      'tag-arrow-3',
+    '経営基盤':  'tag-base',
+  };
+  const PRIORITY_CYCLE = ['高', '中', '低'];
+  const PRIORITY_CLASS = { '高': 'priority-high', '中': 'priority-mid', '低': 'priority-low' };
+  const BADGE_CLASS = { '高': 'p-high', '中': 'p-mid', '低': 'p-low' };
+  const FOCUS_STORAGE_KEY = 'focus-dashboard-state';
+  const FOCUS_COLLAPSE_KEY = 'gantt-focus-collapse';
+
+  function escapeAttr(str) {
+    return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function loadFocusState() {
+    try {
+      const raw = localStorage.getItem(FOCUS_STORAGE_KEY);
+      if (!raw) return null;
+      const state = JSON.parse(raw);
+      if (state && state.priorities && state.order) return state;
+      return null;
+    } catch { return null; }
+  }
+
+  function saveFocusState(state) {
+    try { localStorage.setItem(FOCUS_STORAGE_KEY, JSON.stringify(state)); } catch {}
+  }
+
+  function mergeItems() {
+    const saved = loadFocusState();
+    const master = FOCUS_DATA.items;
+    const masterMap = new Map();
+    master.forEach(item => {
+      const p = item.priority || (item.top ? '高' : '中');
+      masterMap.set(item.text, { ...item, priority: p });
+    });
+
+    if (!saved) return master.map(item => {
+      const p = item.priority || (item.top ? '高' : '中');
+      return { ...item, priority: p };
+    });
+
+    const result = [];
+    const seen = new Set();
+    const savedNotes = saved.notes || {};
+    const savedDoneItems = new Set(saved.doneItems || []);
+    const savedDoneSubs = saved.doneSubs || {};
+
+    for (const text of saved.order) {
+      if (masterMap.has(text)) {
+        const item = { ...masterMap.get(text) };
+        if (saved.priorities[text]) item.priority = saved.priorities[text];
+        if (savedNotes[text]) item.note = savedNotes[text];
+        if (saved.doneItems) item.done = savedDoneItems.has(text);
+        if (item.subs && savedDoneSubs[text]) {
+          const doneSubSet = new Set(savedDoneSubs[text]);
+          item.subs = item.subs.map(s => ({ ...s, done: doneSubSet.has(s.text) }));
+        }
+        result.push(item);
+        seen.add(text);
+      }
+    }
+
+    for (const item of master) {
+      if (!seen.has(item.text)) {
+        const p = item.priority || (item.top ? '高' : '中');
+        result.push({ ...item, priority: p });
+      }
+    }
+
+    return result;
+  }
+
+  function saveCurrentState() {
+    const container = document.getElementById('focus-items');
+    const items = container.querySelectorAll('.focus-item');
+    const order = [];
+    const priorities = {};
+    const notes = {};
+    const doneItems = [];
+    const doneSubs = {};
+    items.forEach(el => {
+      const text = el.getAttribute('data-text');
+      const priority = el.getAttribute('data-priority');
+      if (text) {
+        order.push(text);
+        priorities[text] = priority;
+        const ta = el.querySelector('[data-note-ta]');
+        if (ta && ta.value.trim()) notes[text] = ta.value.trim();
+        const check = el.querySelector('.focus-item-check');
+        if (check && check.classList.contains('done')) doneItems.push(text);
+        const doneSubTexts = [];
+        el.querySelectorAll('.sub-item').forEach(sub => {
+          const subCheck = sub.querySelector('.sub-check');
+          if (subCheck && subCheck.classList.contains('done')) {
+            const subText = sub.getAttribute('data-sub-text');
+            if (subText) doneSubTexts.push(subText);
+          }
+        });
+        if (doneSubTexts.length) doneSubs[text] = doneSubTexts;
+      }
+    });
+    saveFocusState({ order, priorities, notes, doneItems, doneSubs });
+  }
+
+  // ---- 折りたたみ ----
+  const collapseBtn = document.getElementById('focus-collapse-btn');
+  const dashboard = document.getElementById('focus-dashboard');
+  const isCollapsed = localStorage.getItem(FOCUS_COLLAPSE_KEY) === 'true';
+  if (isCollapsed) {
+    dashboard.classList.add('collapsed');
+    collapseBtn.textContent = '展開する';
+  }
+  collapseBtn.addEventListener('click', function() {
+    const nowCollapsed = dashboard.classList.toggle('collapsed');
+    collapseBtn.textContent = nowCollapsed ? '展開する' : '折りたたむ';
+    localStorage.setItem(FOCUS_COLLAPSE_KEY, nowCollapsed ? 'true' : 'false');
+  });
+
+  // ---- ヘッダー ----
+  const hdr = document.getElementById('focus-header');
+  hdr.innerHTML = `
+    <div class="focus-week-date">${FOCUS_DATA.weekLabel}</div>
+    <div class="focus-week-phase">${FOCUS_DATA.phase}</div>
+    <div class="focus-week-progress">${FOCUS_DATA.progress}</div>`;
+
+  // ---- メインレンダリング ----
+  function renderFocusItems() {
+    const items = mergeItems();
+    const list = document.getElementById('focus-items');
+    list.innerHTML = items.map(item => {
+      const priority = item.priority || '中';
+      const pCls = PRIORITY_CLASS[priority] || 'priority-mid';
+      const bCls = BADGE_CLASS[priority] || 'p-mid';
+      const checkCls = item.done ? ' done' : '';
+      const checkMark = item.done ? '&#10003;' : '';
+      const tagCls = TAG_CLASS[item.tag] || 'tag-base';
+      const textEsc = escapeAttr(item.text);
+      const taskIdsAttr = escapeAttr(JSON.stringify(item.taskIds || []));
+
+      // ガントリンクバッジ
+      let ganttBadgeHtml = '';
+      if (item.taskIds && item.taskIds.length > 0) {
+        const prog = getGanttProgress(item.taskIds);
+        const color = prog.pct === 100 ? '#16a34a' : prog.pct >= 50 ? '#f59e0b' : '#1e3a5f';
+        ganttBadgeHtml = `<span class="gantt-link-badge">タスク ${prog.done}/${prog.total} <span class="glb-bar"><span class="glb-fill" style="width:${prog.pct}%;background:${color}"></span></span></span>`;
+      }
+
+      let subsHtml = '';
+      if (item.subs && item.subs.length) {
+        subsHtml = '<div style="margin-top:6px;padding-left:32px;display:flex;flex-direction:column;gap:3px;">' +
+          item.subs.map(s => {
+            const sDoneStyle = s.done ? 'opacity:.5;text-decoration:line-through;' : '';
+            const sCheckCls = s.done ? ' done' : '';
+            const sCheckMark = s.done ? '&#10003;' : '';
+            return `<div class="sub-item" data-sub-text="${escapeAttr(s.text)}" style="${sDoneStyle}"><span style="font-size:12px;display:flex;align-items:center;gap:6px;"><span class="sub-check${sCheckCls}">${sCheckMark}</span>${escapeAttr(s.text)}</span></div>`;
+          }).join('') + '</div>';
+      }
+      const hasNote = item.note ? ' has-note' : '';
+      const noteOpen = item.note ? ' open' : '';
+      return `<div class="focus-item ${pCls}" data-text="${textEsc}" data-priority="${priority}" data-task-ids="${taskIdsAttr}" style="flex-wrap:wrap;">
+        <div class="focus-item-handle" title="ドラッグで並び替え">⠿</div>
+        <div class="focus-item-check${checkCls}">${checkMark}</div>
+        <div class="focus-item-text">${escapeAttr(item.text)}${ganttBadgeHtml}${subsHtml}</div>
+        <div class="focus-item-priority ${bCls}" title="クリックで優先度変更">${priority}</div>
+        <div class="focus-item-tag ${tagCls}" style="align-self:flex-start;margin-top:2px;">${item.tag}</div>
+        <button class="focus-item-note-btn${hasNote}" data-note-btn title="メモ">&#x1F4DD;</button>
+        <div class="focus-item-notes-area${noteOpen}" data-note-area>
+          <textarea data-note-ta placeholder="メモを記入..."></textarea>
+        </div>
+      </div>`;
+    }).join('');
+
+    // 優先度クリックイベント
+    list.querySelectorAll('.focus-item-priority').forEach(badge => {
+      badge.addEventListener('click', function() {
+        const row = this.closest('.focus-item');
+        const current = row.getAttribute('data-priority');
+        const idx = PRIORITY_CYCLE.indexOf(current);
+        const next = PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length];
+        row.setAttribute('data-priority', next);
+        row.classList.remove('priority-high', 'priority-mid', 'priority-low');
+        row.classList.add(PRIORITY_CLASS[next]);
+        this.classList.remove('p-high', 'p-mid', 'p-low');
+        this.classList.add(BADGE_CLASS[next]);
+        this.textContent = next;
+        saveCurrentState();
+      });
+    });
+
+    // メインアイテムのチェックボックス
+    list.querySelectorAll('.focus-item-check').forEach(check => {
+      check.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isDone = this.classList.toggle('done');
+        this.innerHTML = isDone ? '&#10003;' : '';
+        saveCurrentState();
+      });
+    });
+
+    // サブアイテムのチェックボックス
+    list.querySelectorAll('.sub-item').forEach(subEl => {
+      subEl.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const check = this.querySelector('.sub-check');
+        if (!check) return;
+        const isDone = check.classList.toggle('done');
+        check.innerHTML = isDone ? '&#10003;' : '';
+        this.style.opacity = isDone ? '.5' : '';
+        this.style.textDecoration = isDone ? 'line-through' : '';
+        saveCurrentState();
+      });
+    });
+
+    // メモ欄
+    var debounceTimer = null;
+    list.querySelectorAll('.focus-item').forEach(function(row) {
+      const text = row.getAttribute('data-text');
+      const ta = row.querySelector('[data-note-ta]');
+      const btn = row.querySelector('[data-note-btn]');
+      const area = row.querySelector('[data-note-area]');
+      if (!ta || !btn || !area) return;
+
+      const matchItem = items.find(function(it) { return it.text === text; });
+      if (matchItem && matchItem.note) ta.value = matchItem.note;
+
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        area.classList.toggle('open');
+        if (area.classList.contains('open')) ta.focus();
+      });
+
+      ta.addEventListener('blur', function() {
+        btn.classList.toggle('has-note', !!ta.value.trim());
+        saveCurrentState();
+      });
+
+      ta.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() {
+          btn.classList.toggle('has-note', !!ta.value.trim());
+          saveCurrentState();
+        }, 800);
+      });
+
+      ta.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+      ta.addEventListener('touchstart', function(e) { e.stopPropagation(); });
+    });
+
+    // SortableJS
+    if (window.Sortable) {
+      Sortable.create(list, {
+        handle: '.focus-item-handle',
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        animation: 150,
+        filter: '.focus-item-notes-area, [data-note-btn]',
+        onEnd: function() { saveCurrentState(); },
+      });
+    }
+  }
+
+  renderFocusItems();
+
+  // リセットボタン
+  document.getElementById('focus-reset').addEventListener('click', function() {
+    localStorage.removeItem(FOCUS_STORAGE_KEY);
+    renderFocusItems();
+  });
+
+  // KPI
+  const kpi = document.getElementById('focus-kpi');
+  kpi.innerHTML = FOCUS_DATA.kpis.map(k => {
+    let style = '';
+    if (k.highlight) style = ' style="background:rgba(16,185,129,0.15);border:1px solid rgba(110,231,183,0.3);"';
+    else if (k.alert) style = ' style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);"';
+    const val = k.target
+      ? `<span class="current">${k.current}</span><span class="arrow">→</span><span class="target">${k.target}</span>`
+      : k.alert
+        ? `<span class="current" style="color:#f87171;">${k.current}</span>`
+        : `<span class="current" style="color:#6ee7b7;">${k.current}</span>`;
+    return `<div class="focus-kpi-item"${style}>
+      <div class="focus-kpi-label">${k.label}</div>
+      <div class="focus-kpi-value">${val}</div>
+    </div>`;
+  }).join('');
+
+  // renderFocusItems を外部から呼べるようにする
+  window._renderFocusItems = renderFocusItems;
+})();
+
+// ============================================================
+// ガントチェックボックス変更時に Focus バッジを即時更新
+// ============================================================
+// render() 内の checkbox handler を拡張するため、
+// MutationObserver でガントの状態変更を監視
+const _origRender = render;
+render = function() {
+  _origRender();
+  // ガントのチェックボックスにFocus更新イベントを追加
+  document.querySelectorAll('.task-cb').forEach(cb => {
+    cb.addEventListener('change', function() {
+      setTimeout(updateFocusGanttBadges, 50);
+    });
+  });
+  document.querySelectorAll('.sub-cb').forEach(cb => {
+    cb.addEventListener('change', function() {
+      setTimeout(updateFocusGanttBadges, 50);
+    });
+  });
+};
+render();
+
+// ============================================================
+// Sub-nav scroll spy
+// ============================================================
+(function() {
+  const nav = document.getElementById('sub-nav');
+  if (!nav) return;
+  const links = [...nav.querySelectorAll('a')];
+  const secs = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const offset = 80;
+
+  function update() {
+    let current = secs[0];
+    for (const s of secs) {
+      if (s.getBoundingClientRect().top <= offset) current = s;
+    }
+    const id = current ? current.id : '';
+    links.forEach(a => {
+      a.classList.toggle('sub-active', a.getAttribute('href') === '#' + id);
+    });
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+
+  links.forEach(a => {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        const top = target.getBoundingClientRect().top + window.pageYOffset - 60;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }
+    });
+  });
+})();
 </script>
 </body>
 </html>

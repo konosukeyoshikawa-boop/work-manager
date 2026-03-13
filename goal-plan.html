@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月利800万達成計画</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Segoe UI', 'Meiryo', sans-serif; background: #faf8f3; color: #2d2a24; padding: 24px 32px; padding-top: 72px; line-height: 1.7; }
+
+  /* Fixed header */
+  .fixed-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #fff; border-bottom: 1px solid #e5e0d5; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 0 32px; display: flex; align-items: center; gap: 16px; height: 52px; }
+  .fixed-header-title { font-size: 14px; font-weight: 700; color: #1a1814; white-space: nowrap; flex-shrink: 0; }
+  .fixed-header-nav { display: flex; flex-wrap: wrap; gap: 6px; overflow-x: auto; }
+  .fixed-header-nav a { display: inline-block; padding: 5px 12px; border-radius: 6px; border: 1px solid #d5d0c5; font-size: 12px; font-weight: 500; color: #6b6560; transition: all 0.15s; white-space: nowrap; text-decoration: none; }
+  .fixed-header-nav a:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; text-decoration: none; }
+  .fixed-header-nav a.nav-active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+  @media (max-width: 768px) {
+    .fixed-header { padding: 0 16px; gap: 10px; height: 48px; }
+    .fixed-header-title { font-size: 12px; }
+    .fixed-header-nav a { font-size: 11px; padding: 4px 8px; }
+    body { padding-top: 60px; }
+  }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back-link { display: inline-block; margin-bottom: 16px; font-size: 13px; color: #6b6560; }
+  .back-link:hover { color: #2d2a24; }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1814; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #8a8478; margin-bottom: 20px; }
+  h2 { font-size: 17px; font-weight: 600; color: #1a1814; margin: 32px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e5e0d5; }
+  h3 { font-size: 14px; font-weight: 600; color: #2d2a24; margin: 20px 0 8px; }
+
+  .goal-banner { background: linear-gradient(90deg, #1e3a5f, #152a45); color: #fff; padding: 14px 20px; border-radius: 8px; font-size: 18px; font-weight: 700; margin-bottom: 8px; text-align: center; letter-spacing: 0.5px; }
+  .goal-sub { text-align: center; font-size: 13px; color: #8a8478; margin-bottom: 24px; }
+
+  .card { background: #fff; border: 1px solid #e5e0d5; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+  .card-header { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 13px; }
+  th { text-align: left; background: #f5f2eb; padding: 8px 12px; font-weight: 600; font-size: 12px; color: #6b6560; border-bottom: 1px solid #e5e0d5; }
+  td { padding: 8px 12px; border-bottom: 1px solid #ede9e0; }
+  tr:last-child td { border-bottom: none; }
+
+  ul { margin: 4px 0 4px 20px; font-size: 13px; }
+  li { margin-bottom: 4px; }
+
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e0d5; font-size: 12px; color: #8a8478; text-align: center; }
+
+  /* Monthly target banner */
+  .month-target { background: #fff; border: 1px solid #e5e0d5; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; }
+  .month-target-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  .month-target-month { font-size: 16px; font-weight: 700; color: #1a1814; }
+  .month-target-phase { font-size: 11px; color: #fff; background: #1e3a5f; padding: 2px 10px; border-radius: 12px; font-weight: 600; }
+  .month-target-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .month-target-item { background: #f9f7f2; border-radius: 8px; padding: 10px 14px; text-align: center; }
+  .month-target-item.mt-primary { background: linear-gradient(135deg, #1e3a5f, #152a45); color: #fff; }
+  .month-target-label { font-size: 11px; color: #8a8478; margin-bottom: 3px; }
+  .mt-primary .month-target-label { color: rgba(255,255,255,0.6); }
+  .month-target-value { font-size: 18px; font-weight: 700; color: #1a1814; }
+  .mt-primary .month-target-value { color: #fff; }
+  .month-target-driver { font-size: 10px; color: #8a8478; margin-top: 2px; }
+  .mt-primary .month-target-driver { color: rgba(255,255,255,0.5); }
+  @media (max-width: 768px) { .month-target-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* Sub-navigation (page sections) */
+  .sub-nav { display: flex; gap: 8px; margin-bottom: 20px; }
+  .sub-nav a { display: inline-block; padding: 4px 12px; border-radius: 5px; border: 1px solid #d5d0c5; font-size: 12px; color: #6b6560; text-decoration: none; transition: all 0.15s; }
+  .sub-nav a:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; text-decoration: none; }
+  .sub-nav a.sub-active { background: #f0f4f8; border-color: #1e3a5f; color: #1e3a5f; font-weight: 600; }
+
+  /* ===== Logic Tree / 事業俯瞰図 ===== */
+  .lt { --line: #c8c2b8; --r: 6px; }
+  .lt-root { text-align: center; margin-bottom: 24px; }
+  .lt-root-box { display: inline-block; background: linear-gradient(90deg,#1e3a5f,#152a45); color:#fff; padding: 10px 28px; border-radius: 8px; font-size: 16px; font-weight: 700; letter-spacing: .3px; }
+  .lt-root-formula { font-size: 12px; color: #8a8478; margin-top: 4px; }
+  .lt-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 0; position: relative; }
+  .lt-split::before { content:''; position: absolute; top: 0; left: 50%; width: 1px; height: 16px; background: var(--line); }
+
+  .lt-branch { position: relative; padding-top: 16px; }
+  .lt-branch::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--line); }
+  .lt-branch-left { padding-right: 10px; }
+  .lt-branch-left::before { left: 50%; }
+  .lt-branch-right { padding-left: 10px; }
+  .lt-branch-right::before { right: 50%; left: 0; }
+
+  .lt-node { background: #fff; border: 1px solid #e5e0d5; border-radius: var(--r); padding: 10px 14px; margin-bottom: 8px; position: relative; font-size: 13px; }
+  .lt-node::before { content:''; position: absolute; top: -16px; left: 50%; width: 1px; height: 16px; background: var(--line); }
+  .lt-node-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .lt-node-formula { font-size: 11.5px; color: #6b6560; font-family: 'Consolas','Courier New',monospace; }
+  .lt-node-note { font-size: 11px; color: #8a8478; margin-top: 3px; }
+
+  .lt-node.lt-multiply { border-color: #8b5cf6; border-left: 3px solid #8b5cf6; }
+  .lt-node.lt-d2c { border-color: #f59e0b; border-left: 3px solid #f59e0b; }
+  .lt-node.lt-bpo { border-color: #3b82f6; border-left: 3px solid #3b82f6; }
+  .lt-node.lt-cost { border-color: #ef4444; border-left: 3px solid #ef4444; }
+  .lt-node.lt-undefined { border-style: dashed; opacity: .7; }
+
+  .lt-imperative { background: #fffbeb; border: 1px solid #fcd34d; border-radius: var(--r); padding: 8px 12px; margin: 4px 0 10px; font-size: 12px; }
+  .lt-imperative strong { color: #b45309; }
+
+  .lt-children { padding-left: 20px; border-left: 1px solid var(--line); margin-left: 18px; }
+  .lt-child { position: relative; padding: 4px 0; }
+  .lt-child::before { content:''; position: absolute; top: 16px; left: -20px; width: 20px; height: 1px; background: var(--line); }
+  .lt-child-box { background: #fff; border: 1px solid #e5e0d5; border-radius: var(--r); padding: 8px 12px; font-size: 12.5px; }
+  .lt-child-box.lt-d2c { border-left: 3px solid #f59e0b; }
+  .lt-child-box.lt-bpo { border-left: 3px solid #3b82f6; }
+  .lt-child-box.lt-cost { border-left: 3px solid #ef4444; }
+  .lt-child-box.lt-multiply { border-left: 3px solid #8b5cf6; }
+  .lt-child-box.lt-new { border-left: 3px solid #8b5cf6; }
+  .lt-child-box.lt-undefined { border-style: dashed; opacity: .7; }
+  .lt-child-title { font-weight: 600; }
+  .lt-child-formula { font-size: 11px; color: #6b6560; font-family: 'Consolas',monospace; margin-top: 1px; }
+
+  .lt-sub { padding-left: 18px; border-left: 1px solid var(--line); margin-left: 14px; }
+  .lt-sub-item { position: relative; padding: 3px 0; font-size: 12px; color: #4a4640; }
+  .lt-sub-item::before { content:''; position: absolute; top: 13px; left: -18px; width: 18px; height: 1px; background: var(--line); }
+  .lt-sub-item code { font-size: 11px; color: #6b6560; background: #f5f2eb; padding: 1px 5px; border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .lt-split { grid-template-columns: 1fr; }
+    .lt-branch-left, .lt-branch-right { padding: 16px 0 0 0; }
+    .lt-branch-left::before, .lt-branch-right::before { left: 0; right: auto; }
+    .lt-split::before { left: 0; }
+  }
+
+  /* ===== Monthly PL / 月次目標 ===== */
+  .pl-table { font-size: 12px; }
+  .pl-table th { font-size: 11px; padding: 6px 8px; }
+  .pl-table td { padding: 6px 8px; }
+  .pl-highlight { background: #ecfdf5; font-weight: 700; }
+
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 180px; padding: 16px 0 0; }
+  .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .bar-stack { display: flex; flex-direction: column; justify-content: flex-end; width: 100%; max-width: 56px; }
+  .bar-segment { width: 100%; min-height: 2px; }
+  .bar-flycka { background: #f59e0b; }
+  .bar-new { background: #8b5cf6; }
+  .bar-bpo { background: #3b82f6; }
+  .bar-label { font-size: 11px; color: #6b6560; }
+  .bar-value { font-size: 11px; font-weight: 700; color: #1a1814; }
+  .bar-legend { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; }
+  .bar-legend-item { display: flex; align-items: center; gap: 4px; }
+  .bar-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* Section Collapse */
+  .collapsible-header { cursor: pointer; user-select: none; }
+  .collapsible-header .section-toggle {
+    display: inline-block; transition: transform 0.2s;
+    font-size: 12px; color: #8a8478;
+  }
+  .collapsible-header .section-toggle.collapsed { transform: rotate(-90deg); }
+  .collapsible-content.hidden { display: none; }
+  .sub-nav a.nav-collapsed { opacity: 0.45; }
+
+</style>
+</head>
+<body>
+
+<!-- Fixed Header Navigation -->
+<div class="fixed-header">
+  <div class="fixed-header-title">経営ダッシュボード</div>
+  <div class="fixed-header-nav">
+    <a href="goal-plan.html" class="nav-active">事業計画</a>
+    <a href="gantt.html">タスク管理</a>
+    <a href="../backoffice/cashflow/dashboard.html">管理会計</a>
+    <a href="../backoffice/cashflow/ss_dashboard.html">予実管理</a>
+  </div>
+</div>
+
+<h1>月利800万達成計画 — 3本の矢</h1>
+<p class="subtitle">2026年3月策定 — ROAS 2.2x固定 &times; 広告費スケール型モデル（スプレッドシート準拠）</p>
+
+<div class="sub-nav" id="sub-nav">
+  <a href="gantt.html#focus-dashboard">重要論点</a>
+  <a href="#logic-tree">事業俯瞰図</a>
+  <a href="#monthly-pl">月次目標</a>
+</div>
+
+<div class="goal-banner">KGI: 2026年9月 月間営業利益 800万円達成 ／ 10月 1,111万円到達</div>
+<p class="goal-sub">3本の矢（FLYCKA &bull; 新ブランド &bull; BPO）で事業横断の利益最大化を実現する</p>
+
+<!-- 今月の目標 -->
+<div class="month-target" id="month-target"></div>
+
+<!-- ============================================ -->
+<h2 id="logic-tree" class="collapsible-header">事業俯瞰図 <span class="section-toggle">▼</span></h2>
+<!-- ============================================ -->
+<div class="collapsible-content" id="logic-tree-content">
+<p style="font-size:13px;color:#6b6560;margin-bottom:16px;">
+  月間営業利益の最大化 → 年間EBITDA &times; 倍率 ＝ 売却金額。すべての施策はこのツリーのどこかに効く。
+</p>
+
+<div class="lt">
+  <!-- Root -->
+  <div class="lt-root">
+    <div class="lt-root-box">Exit Value ¥300M</div>
+    <div class="lt-root-formula">= EBITDA &times; Multiple</div>
+  </div>
+
+  <!-- Split: 営業利益 / 倍率 -->
+  <div class="lt-split">
+
+    <!-- ====== 左: 営業利益 ====== -->
+    <div class="lt-branch lt-branch-left">
+      <div class="lt-node">
+        <div class="lt-node-title">営業利益</div>
+        <div class="lt-node-formula">＝ 全事業利益 &minus; 固定費（100万/月固定）</div>
+        <div class="lt-node-note">10月目標: 1,111万/月</div>
+      </div>
+
+      <div class="lt-children">
+        <div class="lt-child">
+          <div class="lt-child-box">
+            <div class="lt-child-title">全事業利益（10月: 1,211万）</div>
+            <div class="lt-child-formula">＝ D2C事業利益（770万） ＋ BPO事業利益（442万）</div>
+          </div>
+
+          <div class="lt-children">
+            <div class="lt-child">
+              <div class="lt-child-box lt-d2c">
+                <div class="lt-child-title">第1の矢: FLYCKA事業利益（10月: 627万）</div>
+                <div class="lt-child-formula">＝ 広告費1,139万 &times; ROAS2.2 &times; 利益率25%</div>
+              </div>
+              <div class="lt-sub">
+                <div class="lt-sub-item">
+                  <strong>事業利益</strong> <code>＝ 広告費 &times; ROAS &times; 利益率</code>
+                </div>
+                <div class="lt-sub">
+                  <div class="lt-sub-item">ROAS <code>2.2x 固定（改善は上振れバッファ）</code></div>
+                  <div class="lt-sub-item">利益率 <code>25% 固定（売上 &minus; 原価 &minus; 広告費）</code></div>
+                  <div class="lt-sub-item">広告費 <code>月+21%で拡大（300万 → 1,139万）</code></div>
+                </div>
+              </div>
+              <div class="lt-imperative">
+                <strong>至上命題:</strong> ROASの安定化 &amp; 広告費スケールの実現
+              </div>
+            </div>
+
+            <div class="lt-child">
+              <div class="lt-child-box lt-new">
+                <div class="lt-child-title">第2の矢: 新ブランド事業利益（10月: 143万）</div>
+                <div class="lt-child-formula">＝ 広告費259万 &times; ROAS2.2 &times; 利益率25%（5月ローンチ）</div>
+              </div>
+              <div class="lt-sub">
+                <div class="lt-sub-item">5月スタート <code>広告費100万/月 → 月+21%で拡大</code></div>
+                <div class="lt-sub-item">ROAS・利益率はFLYCKAと同一前提</div>
+              </div>
+              <div class="lt-imperative">
+                <strong>至上命題:</strong> 3月中にカテゴリ決定 → 5月ローンチを死守
+              </div>
+            </div>
+
+            <div class="lt-child">
+              <div class="lt-child-box lt-bpo">
+                <div class="lt-child-title">第3の矢: BPO事業利益（10月: 442万）</div>
+                <div class="lt-child-formula">＝ 固定報酬（192万） ＋ 成果報酬（79万） ＋ 人材（171万）</div>
+              </div>
+              <div class="lt-children">
+                <div class="lt-child">
+                  <div class="lt-child-box lt-bpo">
+                    <div class="lt-child-title">固定報酬案件（10月: 192万）</div>
+                    <div class="lt-child-formula">＝ 8案件 &times; 60万 &times; 利益率40%（月+1案件）</div>
+                  </div>
+                </div>
+                <div class="lt-child">
+                  <div class="lt-child-box lt-bpo">
+                    <div class="lt-child-title">成果報酬案件（10月: 79万）</div>
+                    <div class="lt-child-formula">＝ 90商談 &times; 3.5万 &times; 利益率25%（月+10商談）</div>
+                  </div>
+                </div>
+                <div class="lt-child">
+                  <div class="lt-child-box lt-bpo">
+                    <div class="lt-child-title">人材事業（10月: 171万）</div>
+                    <div class="lt-child-formula">＝ 8,543h &times; マージン200円（月+50%成長）</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lt-child">
+          <div class="lt-child-box lt-cost">
+            <div class="lt-child-title">固定費（▲100万/月 固定）</div>
+            <div class="lt-child-formula">＝ 人件費 ＋ 家賃 ＋ SaaS ＋ 税金</div>
+          </div>
+          <div class="lt-imperative">
+            <strong>至上命題:</strong> 盤石な経営管理基盤の構築（資金繰り管理・経理業務の自動化・借入）
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 右: 倍率 ====== -->
+    <div class="lt-branch lt-branch-right">
+      <div class="lt-node lt-multiply">
+        <div class="lt-node-title">倍率</div>
+        <div class="lt-node-note">Why buyers would pay ¥300M</div>
+      </div>
+      <div class="lt-children">
+        <div class="lt-child">
+          <div class="lt-child-box lt-multiply">
+            <div class="lt-child-title">ブランディング</div>
+            <div class="lt-child-formula">認知・SNS・顧客基盤・ブランド資産</div>
+          </div>
+        </div>
+        <div class="lt-child">
+          <div class="lt-child-box lt-multiply">
+            <div class="lt-child-title">人脈</div>
+            <div class="lt-child-formula">買い手ネットワーク・業界リレーション</div>
+          </div>
+        </div>
+        <div class="lt-child">
+          <div class="lt-child-box lt-multiply">
+            <div class="lt-child-title">事業特性</div>
+            <div class="lt-child-formula">収益性・成長率・ストック性・ポートフォリオ多角化</div>
+          </div>
+          <div class="lt-sub">
+            <div class="lt-sub-item">クリーンな財務・経営基盤 → <strong>経営基盤</strong></div>
+            <div class="lt-sub-item">D2C 2ブランドの成長性 → <strong>第1・第2の矢</strong></div>
+            <div class="lt-sub-item">BPO 3セグメントの安定性 → <strong>第3の矢</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /lt-split -->
+</div><!-- /lt -->
+</div><!-- /collapsible-content logic-tree -->
+
+<!-- ============================================ -->
+<h2 id="monthly-pl" class="collapsible-header">月次目標 <span class="section-toggle">▼</span></h2>
+<!-- ============================================ -->
+<div class="collapsible-content" id="monthly-pl-content">
+
+<h3>月次営業利益推移</h3>
+<div class="card">
+  <div class="bar-chart">
+    <div class="bar-group">
+      <div class="bar-value">117</div>
+      <div class="bar-stack">
+        <div class="bar-segment bar-bpo" style="height:24px;"></div>
+        <div class="bar-segment bar-flycka" style="height:22px;border-radius:3px 3px 0 0;"></div>
+      </div>
+      <div class="bar-label">3月</div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-value">189</div>
+      <div class="bar-stack">
+        <div class="bar-segment bar-bpo" style="height:30px;"></div>
+        <div class="bar-segment bar-flycka" style="height:28px;border-radius:3px 3px 0 0;"></div>
+      </div>
+      <div class="bar-label">4月</div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-value">326</div>
+      <div class="bar-stack">
+        <div class="bar-segment bar-bpo" style="height:34px;"></div>
+        <div class="bar-segment bar-new" style="height:10px;"></div>
+        <div class="bar-segment bar-flycka" style="height:34px;border-radius:3px 3px 0 0;"></div>
+      </div>
+      <div class="bar-label">5月</div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-value">432</div>
+      <div class="bar-stack">
+        <div class="bar-segment bar-bpo" style="height:38px;"></div>
+        <div class="bar-segment bar-new" style="height:12px;"></div>
+        <div class="bar-segment bar-flycka" style="height:42px;border-radius:3px 3px 0 0;"></div>
+      </div>
+      <div class="bar-label">6月</div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-value">557</div>
+      <div class="bar-stack">
+        <div class="bar-segment bar-bpo" style="height:44px;"></div>
+        <div class="bar-segment bar-new" style="height:14px;"></div>
+        <div class="bar-segment bar-flycka" style="height:52px;border-radius:3px 3px 0 0;"></div>
+      </div>
+      <div class="bar-label">7月</div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-value">707</div>
+      <div class="bar-stack">
+        <div class="bar-segment bar-bpo" style="height:52px;"></div>
+        <div class="bar-segment bar-new" style="height:16px;"></div>
+        <div class="bar-segment bar-flycka" style="height:64px;border-radius:3px 3px 0 0;"></div>
+      </div>
+      <div class="bar-label">8月</div>
+    </div>
+    <div class="bar-group" style="position:relative;">
+      <div class="bar-value" style="color:#059669;font-size:12px;">888</div>
+      <div class="bar-stack" style="border:2px solid #059669;border-radius:4px;">
+        <div class="bar-segment bar-bpo" style="height:60px;"></div>
+        <div class="bar-segment bar-new" style="height:18px;"></div>
+        <div class="bar-segment bar-flycka" style="height:76px;border-radius:2px 2px 0 0;"></div>
+      </div>
+      <div class="bar-label" style="color:#059669;font-weight:700;">9月</div>
+    </div>
+    <div class="bar-group" style="position:relative;">
+      <div class="bar-value" style="color:#059669;font-size:12px;">1,111</div>
+      <div class="bar-stack" style="border:2px solid #059669;border-radius:4px;">
+        <div class="bar-segment bar-bpo" style="height:70px;"></div>
+        <div class="bar-segment bar-new" style="height:20px;"></div>
+        <div class="bar-segment bar-flycka" style="height:92px;border-radius:2px 2px 0 0;"></div>
+      </div>
+      <div class="bar-label" style="color:#059669;font-weight:700;">10月</div>
+    </div>
+  </div>
+  <div class="bar-legend">
+    <div class="bar-legend-item"><div class="bar-legend-dot" style="background:#f59e0b;"></div>FLYCKA</div>
+    <div class="bar-legend-item"><div class="bar-legend-dot" style="background:#8b5cf6;"></div>新ブランド</div>
+    <div class="bar-legend-item"><div class="bar-legend-dot" style="background:#3b82f6;"></div>BPO</div>
+  </div>
+</div>
+
+<h3>月次P/L詳細（単位: 万円）</h3>
+<p style="font-size:12px;color:#8a8478;margin-bottom:8px;">
+  各利益行の下に<span style="color:#1e3a5f;font-weight:600;">ドライバー指標</span>を併記。乖離があればアクションを取る。
+</p>
+<div class="card" style="overflow-x:auto;">
+  <table class="pl-table">
+    <thead>
+      <tr>
+        <th></th><th>3月</th><th>4月</th><th>5月</th><th>6月</th><th>7月</th><th>8月</th>
+        <th style="color:#059669;">9月</th><th style="color:#059669;">10月</th><th style="font-size:10px;color:#8a8478;">前提</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- FLYCKA -->
+      <tr style="background:#fff8e1;">
+        <td style="text-align:left;font-weight:600;">FLYCKA 利益</td>
+        <td>165</td><td>200</td><td>242</td><td>292</td><td>354</td><td>428</td>
+        <td style="font-weight:600;">518</td><td style="font-weight:600;">627</td>
+        <td style="font-size:10px;color:#8a8478;">広告費&times;ROAS&times;利益率</td>
+      </tr>
+      <tr style="font-size:11px;color:#b45309;background:#fffcf0;">
+        <td style="text-align:left;padding-left:24px;">広告費</td>
+        <td>300</td><td>363</td><td>439</td><td>531</td><td>643</td><td>778</td><td>942</td><td>1,139</td>
+        <td style="font-size:10px;color:#8a8478;">月+21%</td>
+      </tr>
+      <tr style="font-size:11px;color:#b45309;background:#fffcf0;">
+        <td style="text-align:left;padding-left:24px;">ROAS</td>
+        <td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td>
+        <td style="font-size:10px;color:#8a8478;">固定前提</td>
+      </tr>
+      <tr style="font-size:11px;color:#b45309;background:#fffcf0;">
+        <td style="text-align:left;padding-left:24px;">原価率</td>
+        <td>35%</td><td>35%</td><td>35%</td><td>35%</td><td>35%</td><td>35%</td><td>35%</td><td>35%</td>
+        <td style="font-size:10px;color:#8a8478;">利益率25%</td>
+      </tr>
+
+      <!-- 新ブランド -->
+      <tr style="background:#f3e8ff;">
+        <td style="text-align:left;font-weight:600;">新ブランド 利益</td>
+        <td>—</td><td>—</td><td>55</td><td>67</td><td>81</td><td>97</td>
+        <td style="font-weight:600;">118</td><td style="font-weight:600;">143</td>
+        <td style="font-size:10px;color:#8a8478;">広告費&times;ROAS&times;利益率</td>
+      </tr>
+      <tr style="font-size:11px;color:#7c3aed;background:#faf5ff;">
+        <td style="text-align:left;padding-left:24px;">広告費</td>
+        <td>—</td><td>—</td><td>100</td><td>121</td><td>146</td><td>177</td><td>214</td><td>259</td>
+        <td style="font-size:10px;color:#8a8478;">月+21%</td>
+      </tr>
+      <tr style="font-size:11px;color:#7c3aed;background:#faf5ff;">
+        <td style="text-align:left;padding-left:24px;">ROAS</td>
+        <td>—</td><td>—</td><td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td><td>2.2</td>
+        <td style="font-size:10px;color:#8a8478;">固定前提</td>
+      </tr>
+
+      <!-- BPO計 -->
+      <tr style="background:#eff6ff;">
+        <td style="text-align:left;font-weight:600;">BPO計</td>
+        <td>52</td><td>89</td><td>130</td><td>173</td><td>223</td><td>281</td>
+        <td style="font-weight:600;">352</td><td style="font-weight:600;">442</td>
+        <td></td>
+      </tr>
+      <tr style="font-size:11px;color:#8a8478;">
+        <td style="text-align:left;padding-left:24px;">固定報酬 利益</td>
+        <td>24</td><td>48</td><td>72</td><td>96</td><td>120</td><td>144</td><td>168</td><td>192</td>
+        <td style="font-size:10px;">案件&times;60万&times;40%</td>
+      </tr>
+      <tr style="font-size:11px;color:#2563eb;background:#f0f6ff;">
+        <td style="text-align:left;padding-left:40px;">案件数</td>
+        <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td>
+        <td style="font-size:10px;color:#8a8478;">月+1件</td>
+      </tr>
+      <tr style="font-size:11px;color:#8a8478;">
+        <td style="text-align:left;padding-left:24px;">成果報酬 利益</td>
+        <td>18</td><td>26</td><td>35</td><td>44</td><td>53</td><td>61</td><td>70</td><td>79</td>
+        <td style="font-size:10px;">商談&times;3.5万&times;25%</td>
+      </tr>
+      <tr style="font-size:11px;color:#2563eb;background:#f0f6ff;">
+        <td style="text-align:left;padding-left:40px;">商談数</td>
+        <td>20</td><td>30</td><td>40</td><td>50</td><td>60</td><td>70</td><td>80</td><td>90</td>
+        <td style="font-size:10px;color:#8a8478;">月+10件</td>
+      </tr>
+      <tr style="font-size:11px;color:#8a8478;">
+        <td style="text-align:left;padding-left:24px;">人材 利益</td>
+        <td>10</td><td>15</td><td>23</td><td>34</td><td>51</td><td>76</td><td>114</td><td>171</td>
+        <td style="font-size:10px;">稼働h&times;¥200</td>
+      </tr>
+      <tr style="font-size:11px;color:#2563eb;background:#f0f6ff;">
+        <td style="text-align:left;padding-left:40px;">稼働h</td>
+        <td>500</td><td>750</td><td>1,125</td><td>1,688</td><td>2,531</td><td>3,797</td><td>5,695</td><td>8,543</td>
+        <td style="font-size:10px;color:#8a8478;">月+50%</td>
+      </tr>
+
+      <!-- 合計 -->
+      <tr style="border-top:2px solid #e5e0d5;">
+        <td style="text-align:left;font-weight:600;">事業利益合計</td>
+        <td>217</td><td>289</td><td>426</td><td>532</td><td>657</td><td>807</td>
+        <td style="font-weight:600;">988</td><td style="font-weight:600;">1,211</td>
+        <td></td>
+      </tr>
+      <tr style="color:#ef4444;">
+        <td style="text-align:left;">固定費</td>
+        <td>▲100</td><td>▲100</td><td>▲100</td><td>▲100</td><td>▲100</td><td>▲100</td><td>▲100</td><td>▲100</td>
+        <td></td>
+      </tr>
+      <tr class="pl-highlight">
+        <td style="text-align:left;font-weight:700;color:#059669;">営業利益</td>
+        <td style="color:#059669;">117</td><td style="color:#059669;">189</td><td style="color:#059669;">326</td>
+        <td style="color:#059669;">432</td><td style="color:#059669;">557</td><td style="color:#059669;">707</td>
+        <td style="color:#059669;font-size:14px;">888</td><td style="color:#059669;font-size:14px;">1,111</td>
+        <td></td>
+      </tr>
+      <tr style="font-size:11px;color:#8a8478;">
+        <td style="text-align:left;">前月比</td>
+        <td>—</td><td>+62%</td><td>+73%</td><td>+33%</td><td>+29%</td><td>+27%</td><td>+26%</td><td>+25%</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>10月の事業利益構成（1,211万）</h3>
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>セグメント</th><th>事業利益</th><th>構成比</th><th>成長ドライバー</th></tr>
+    </thead>
+    <tbody>
+      <tr style="background:#fff8e1;">
+        <td style="font-weight:600;">FLYCKA</td><td style="font-weight:700;">627万</td><td>52%</td>
+        <td>広告費1,139万 &times; ROAS2.2 &times; 利益率25%</td>
+      </tr>
+      <tr style="background:#f3e8ff;">
+        <td style="font-weight:600;">新ブランド</td><td style="font-weight:700;">143万</td><td>12%</td>
+        <td>広告費259万 &times; ROAS2.2 &times; 利益率25%</td>
+      </tr>
+      <tr style="background:#eff6ff;">
+        <td style="font-weight:600;">BPO 固定報酬</td><td style="font-weight:700;">192万</td><td>16%</td>
+        <td>8案件 &times; 60万 &times; 利益率40%</td>
+      </tr>
+      <tr style="background:#eff6ff;">
+        <td style="font-weight:600;">BPO 成果報酬</td><td style="font-weight:700;">79万</td><td>7%</td>
+        <td>90商談 &times; 3.5万 &times; 利益率25%</td>
+      </tr>
+      <tr style="background:#eff6ff;">
+        <td style="font-weight:600;">BPO 人材</td><td style="font-weight:700;">171万</td><td>14%</td>
+        <td>8,543h &times; マージン200円</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /collapsible-content monthly-pl -->
+
+<div class="footer">
+  策定: 2026/03/10 ／ 改訂: 2026/03/12 ／ 数値モデル: スプレッドシート準拠（ROAS 2.2x固定 &times; 広告費スケール型）
+</div>
+
+<script>
+// ============================================================
+// MONTH_TARGET — 今月の目標（月初に更新）
+// ============================================================
+const MONTH_TARGET = {
+  month: '3月',
+  phase: 'Phase 1: 基盤構築',
+  profit: { label: '営業利益', value: '117万', driver: '全事業利益217万 − 固定費100万' },
+  items: [
+    { label: 'FLYCKA利益',    value: '165万', driver: '広告費300万 × ROAS2.2 × 利益率25%' },
+    { label: 'BPO計',         value: '52万',  driver: '固定24万 + 成果18万 + 人材10万' },
+    { label: 'FLYCKA広告費',  value: '300万',  driver: '前月比 +21%' },
+    { label: 'BPO固定報酬',   value: '1件',    driver: '案件 × 60万 × 利益率40%' },
+    { label: 'BPO商談数',     value: '20件',   driver: '商談 × 3.5万 × 利益率25%' },
+    { label: 'BPO人材稼働',   value: '500h',   driver: '稼働h × マージン¥200' },
+  ],
+};
+
+(function() {
+  const t = MONTH_TARGET;
+  const el = document.getElementById('month-target');
+  el.innerHTML = `
+    <div class="month-target-header">
+      <div class="month-target-month">${t.month}の目標</div>
+      <div class="month-target-phase">${t.phase}</div>
+    </div>
+    <div class="month-target-grid">
+      <div class="month-target-item mt-primary">
+        <div class="month-target-label">${t.profit.label}</div>
+        <div class="month-target-value">${t.profit.value}</div>
+        <div class="month-target-driver">${t.profit.driver}</div>
+      </div>
+      ${t.items.map(i => `
+        <div class="month-target-item">
+          <div class="month-target-label">${i.label}</div>
+          <div class="month-target-value">${i.value}</div>
+          <div class="month-target-driver">${i.driver}</div>
+        </div>
+      `).join('')}
+    </div>`;
+})();
+
+// ============================================================
+// Section Collapse
+// ============================================================
+(function() {
+  const COLLAPSE_KEY = 'goal-plan-collapse';
+  function loadCollapse() { try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {}; } catch { return {}; } }
+  function saveCollapse(s) { try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(s)); } catch {} }
+
+  const sectionIds = ['logic-tree', 'monthly-pl'];
+  let collapseState = loadCollapse();
+
+  sectionIds.forEach(function(id) {
+    const header = document.getElementById(id);
+    const content = document.getElementById(id + '-content');
+    const toggle = header ? header.querySelector('.section-toggle') : null;
+    if (!header || !content || !toggle) return;
+
+    // 初期状態
+    if (collapseState[id]) {
+      content.classList.add('hidden');
+      toggle.classList.add('collapsed');
+    }
+    updateSubNav(id, !!collapseState[id]);
+
+    header.addEventListener('click', function() {
+      const isCollapsed = content.classList.toggle('hidden');
+      toggle.classList.toggle('collapsed', isCollapsed);
+      collapseState[id] = isCollapsed;
+      saveCollapse(collapseState);
+      updateSubNav(id, isCollapsed);
+    });
+  });
+
+  function updateSubNav(id, collapsed) {
+    const link = document.querySelector('#sub-nav a[href="#' + id + '"]');
+    if (link) link.classList.toggle('nav-collapsed', collapsed);
+  }
+
+  // サブナビクリック時: 折りたたみ中なら自動展開
+  document.querySelectorAll('#sub-nav a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      const href = a.getAttribute('href');
+      const id = href ? href.replace('#', '') : '';
+      if (id && collapseState[id]) {
+        const content = document.getElementById(id + '-content');
+        const toggle = document.getElementById(id) ? document.getElementById(id).querySelector('.section-toggle') : null;
+        if (content && toggle) {
+          content.classList.remove('hidden');
+          toggle.classList.remove('collapsed');
+          collapseState[id] = false;
+          saveCollapse(collapseState);
+          updateSubNav(id, false);
+        }
+      }
+    });
+  });
+})();
+
+// ============================================================
+// Scroll spy + smooth nav (sub-nav)
+// ============================================================
+(function() {
+  const nav = document.getElementById('sub-nav');
+  const links = [...nav.querySelectorAll('a')];
+  const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const offset = 80;
+
+  function update() {
+    let current = sections[0];
+    for (const s of sections) {
+      if (s.getBoundingClientRect().top <= offset) current = s;
+    }
+    const id = current ? current.id : '';
+    links.forEach(a => {
+      a.classList.toggle('sub-active', a.getAttribute('href') === '#' + id);
+    });
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+
+  links.forEach(a => {
+    a.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      // 外部リンク（gantt.html等）はデフォルト動作に任せる
+      if (!href.startsWith('#')) return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        const top = target.getBoundingClientRect().top + window.pageYOffset - 60;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
