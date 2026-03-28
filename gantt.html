@@ -779,14 +779,58 @@ function updateSyncUI(status) {
 // Sync keys (not including API key for security)
 const SYNC_KEYS = ['gantt-task-state', 'gantt-collapse', 'focus-dashboard-state', 'gantt-focus-collapse', 'diary-entries', 'diary-ai-results'];
 
+// Deep merge: local + remote data
+function mergeData(key, local, remote) {
+  if (!local) return remote;
+  if (!remote) return local;
+  // For object-type keys, merge properties (local wins for conflicts on simple values, union for diary entries)
+  if (typeof local === 'object' && typeof remote === 'object' && !Array.isArray(local)) {
+    const merged = { ...remote };
+    for (const k of Object.keys(local)) {
+      if (key === 'diary-entries' && typeof local[k] === 'object' && typeof merged[k] === 'object') {
+        // Diary entry: merge fields, prefer non-empty
+        merged[k] = { ...merged[k] };
+        for (const f of Object.keys(local[k])) {
+          const lv = local[k][f];
+          const rv = merged[k][f];
+          if (lv && (!rv || (typeof lv === 'string' && lv.trim() && (!rv || !rv.trim())))) {
+            merged[k][f] = lv;
+          } else if (typeof lv === 'object' && typeof rv === 'object') {
+            merged[k][f] = { ...rv, ...lv };
+          }
+        }
+      } else if (key === 'gantt-task-state') {
+        // Task state: true wins (if checked on either device, keep checked)
+        merged[k] = local[k] || merged[k];
+      } else {
+        // Default: local wins
+        merged[k] = local[k];
+      }
+    }
+    return merged;
+  }
+  // For non-objects, local wins
+  return local;
+}
+
 async function migrateToFirebase() {
   for (const key of SYNC_KEYS) {
     const snap = await firebaseDb.ref('users/' + firebaseUser.uid + '/' + key).once('value');
-    if (snap.val() === null) {
-      const local = localStorage.getItem(key);
-      if (local) {
-        await firebaseDb.ref('users/' + firebaseUser.uid + '/' + key).set(JSON.parse(local));
-      }
+    const remote = snap.val();
+    let local = null;
+    try { local = JSON.parse(localStorage.getItem(key)); } catch {}
+
+    if (local && remote) {
+      // Both exist: merge
+      const merged = mergeData(key, local, remote);
+      await firebaseDb.ref('users/' + firebaseUser.uid + '/' + key).set(merged);
+      localStorage.setItem(key, JSON.stringify(merged));
+      DataStore._cache[key] = merged;
+    } else if (local && !remote) {
+      await firebaseDb.ref('users/' + firebaseUser.uid + '/' + key).set(local);
+    } else if (remote && !local) {
+      localStorage.setItem(key, JSON.stringify(remote));
+      DataStore._cache[key] = remote;
     }
   }
 }
