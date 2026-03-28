@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>データ移行ツール</title>
+<style>
+  body { font-family: 'Segoe UI','Meiryo',sans-serif; background: #faf8f3; color: #2d2a24; padding: 40px; max-width: 700px; margin: 0 auto; }
+  h1 { font-size: 20px; margin-bottom: 8px; }
+  p { font-size: 14px; color: #6b6560; margin-bottom: 20px; }
+  .step { background: #fff; border: 1px solid #e5e0d5; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .step-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  textarea { width: 100%; height: 120px; border: 1px solid #e5e0d5; border-radius: 6px; padding: 10px; font-size: 12px; font-family: monospace; resize: vertical; }
+  button { padding: 10px 24px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; margin-top: 8px; }
+  .btn-primary { background: #1e3a5f; color: #fff; }
+  .btn-primary:hover { background: #152a45; }
+  .btn-import { background: #10b981; color: #fff; }
+  .btn-import:hover { background: #059669; }
+  .status { margin-top: 10px; font-size: 13px; font-weight: 600; }
+  .status.ok { color: #10b981; }
+  .status.err { color: #dc2626; }
+  .info { font-size: 12px; color: #8a8478; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>データ移行ツール</h1>
+<p>file:// のローカルデータを GitHub Pages に移行します</p>
+
+<div class="step">
+  <div class="step-title">Step 1: データをエクスポート（file:// で開いた場合）</div>
+  <p style="font-size:13px;color:#2d2a24;">このファイルを <code>file:///C:/Users/paul1/work-manager/migrate.html</code> で開いて、下のボタンを押してください。</p>
+  <button class="btn-primary" id="export-btn">エクスポート（クリップボードにコピー）</button>
+  <div class="status" id="export-status"></div>
+  <textarea id="export-data" readonly placeholder="ここにエクスポートデータが表示されます"></textarea>
+  <div class="info" id="export-info"></div>
+</div>
+
+<div class="step">
+  <div class="step-title">Step 2: データをインポート（GitHub Pages で開いた場合）</div>
+  <p style="font-size:13px;color:#2d2a24;">GitHub Pages の migrate.html を開いて、Step 1 でコピーしたデータを貼り付けてください。</p>
+  <textarea id="import-data" placeholder="ここにStep 1のデータを貼り付け"></textarea>
+  <button class="btn-import" id="import-btn">インポート（データを復元）</button>
+  <div class="status" id="import-status"></div>
+</div>
+
+<script>
+const KEYS = [
+  'gantt-task-state',
+  'gantt-collapse',
+  'focus-dashboard-state',
+  'gantt-focus-collapse',
+  'diary-entries',
+  'diary-ai-results'
+];
+
+document.getElementById('export-btn').addEventListener('click', function() {
+  const data = {};
+  let count = 0;
+  KEYS.forEach(key => {
+    const val = localStorage.getItem(key);
+    if (val) { data[key] = val; count++; }
+  });
+  const json = JSON.stringify(data);
+  document.getElementById('export-data').value = json;
+
+  navigator.clipboard.writeText(json).then(() => {
+    document.getElementById('export-status').className = 'status ok';
+    document.getElementById('export-status').textContent = 'クリップボードにコピーしました';
+  }).catch(() => {
+    document.getElementById('export-status').className = 'status ok';
+    document.getElementById('export-status').textContent = '下のテキストを手動でコピーしてください';
+  });
+
+  // Show details
+  const details = KEYS.map(key => {
+    const val = localStorage.getItem(key);
+    if (!val) return key + ': (空)';
+    if (key === 'diary-entries') {
+      try { return key + ': ' + Object.keys(JSON.parse(val)).length + '日分'; } catch { return key + ': あり'; }
+    }
+    return key + ': あり';
+  }).join(' / ');
+  document.getElementById('export-info').textContent = details;
+});
+
+document.getElementById('import-btn').addEventListener('click', function() {
+  const raw = document.getElementById('import-data').value.trim();
+  if (!raw) {
+    document.getElementById('import-status').className = 'status err';
+    document.getElementById('import-status').textContent = 'データを貼り付けてください';
+    return;
+  }
+  try {
+    const data = JSON.parse(raw);
+    let count = 0;
+    Object.entries(data).forEach(([key, val]) => {
+      if (val) { localStorage.setItem(key, val); count++; }
+    });
+    document.getElementById('import-status').className = 'status ok';
+    document.getElementById('import-status').textContent = count + '件のデータを復元しました。gantt.html を開いてください。';
+  } catch (e) {
+    document.getElementById('import-status').className = 'status err';
+    document.getElementById('import-status').textContent = 'エラー: データ形式が不正です。';
+  }
+});
+</script>
+</body>
+</html>
