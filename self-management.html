@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自己管理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Meiryo', sans-serif; background: #faf8f3; color: #2d2a24; padding: 24px; padding-top: 72px; }
+
+  /* ===== Fixed header nav ===== */
+  .fixed-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #fff; border-bottom: 1px solid #e5e0d5; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 0 32px; display: flex; align-items: center; gap: 16px; height: 52px; }
+  .fixed-header-title { font-size: 14px; font-weight: 700; color: #1a1814; white-space: nowrap; flex-shrink: 0; }
+  .nav-group { display: flex; align-items: center; gap: 6px; }
+  .nav-sep { width: 1px; height: 20px; background: #e5e0d5; margin: 0 6px; flex-shrink: 0; }
+  .fixed-header-nav { display: flex; flex-wrap: wrap; gap: 6px; overflow-x: auto; align-items: center; }
+  .fixed-header-nav a { display: inline-block; padding: 5px 12px; border-radius: 6px; border: 1px solid #d5d0c5; font-size: 12px; font-weight: 500; color: #6b6560; transition: all 0.15s; white-space: nowrap; text-decoration: none; }
+  .fixed-header-nav a:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; }
+  .fixed-header-nav a.nav-active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+  .fixed-header-nav a.nav-ref { border-style: dashed; font-size: 11px; color: #a09a90; }
+  .fixed-header-nav a.nav-ref:hover { border-color: #1e3a5f; color: #1e3a5f; border-style: solid; }
+
+  /* ===== Sub-tabs ===== */
+  .sub-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #e5e0d5; }
+  .sub-tab { padding: 10px 24px; font-size: 14px; font-weight: 600; color: #8a8478; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; user-select: none; }
+  .sub-tab:hover { color: #1e3a5f; }
+  .sub-tab.active { color: #1e3a5f; border-bottom-color: #1e3a5f; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ===== Checklist styles ===== */
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; color: #1a1814; }
+  .subtitle { font-size: 13px; color: #8a8478; margin-bottom: 16px; }
+
+  .progress-banner { background: linear-gradient(90deg, #1e3a5f, #152a45); color: #fff; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .progress-banner .label { font-size: 13px; font-weight: 600; }
+  .progress-banner .bar-wrap { flex: 1; max-width: 400px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+  .progress-banner .bar-fill { height: 100%; background: #4ade80; border-radius: 4px; transition: width 0.4s ease; }
+  .progress-banner .count { font-size: 13px; font-weight: 600; min-width: 60px; text-align: right; }
+
+  .section { background: #fff; border: 1px solid #e5e0d5; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .section-header { display: flex; align-items: center; gap: 10px; padding: 14px 20px; cursor: pointer; user-select: none; border-bottom: 1px solid #ede9e0; }
+  .section-header:hover { background: #fdfcf9; }
+  .section-icon { font-size: 12px; font-weight: 700; flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #1e3a5f; color: #fff; border-radius: 50%; }
+  .section-title { font-size: 14px; font-weight: 600; color: #1a1814; flex: 1; }
+  .section-time { font-size: 11px; color: #8a8478; background: #f5f3ee; padding: 2px 8px; border-radius: 4px; }
+  .section-progress { font-size: 12px; font-weight: 600; color: #8a8478; }
+  .section-progress.done { color: #16a34a; }
+  .section-toggle { font-size: 10px; color: #b8b0a4; transition: transform 0.2s; }
+  .section-toggle.collapsed { transform: rotate(-90deg); }
+  .section-body { padding: 0; }
+  .section-body.collapsed { display: none; }
+
+  .check-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #f5f3ee; transition: background 0.15s; }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: #fdfcf9; }
+  .check-item.checked { background: #f9fdf6; }
+  .check-item.checked .item-title { color: #a3a39a; text-decoration: line-through; }
+  .check-item.checked .item-desc { color: #c5c0b8; }
+
+  .item-cb { width: 18px; height: 18px; cursor: pointer; accent-color: #16a34a; flex-shrink: 0; margin-top: 1px; }
+  .item-content { flex: 1; min-width: 0; }
+  .item-title { font-size: 13px; font-weight: 500; color: #2d2a24; line-height: 1.4; }
+  .item-desc { font-size: 11px; color: #8a8478; margin-top: 2px; line-height: 1.4; }
+  .item-tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+  .tag-finance { background: #fef3c7; color: #92400e; }
+  .tag-ad { background: #ede9fe; color: #5b21b6; }
+  .tag-bpo { background: #dbeafe; color: #1e40af; }
+  .tag-creative { background: #fce7f3; color: #9d174d; }
+  .tag-ops { background: #f0fdf4; color: #166534; }
+
+  .history-section { margin-top: 24px; }
+  .history-title { font-size: 14px; font-weight: 600; color: #1a1814; margin-bottom: 10px; }
+  .history-grid { display: flex; gap: 4px; flex-wrap: wrap; }
+  .history-day { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; cursor: default; position: relative; }
+  .history-day.full { background: #16a34a; color: #fff; }
+  .history-day.partial { background: #fbbf24; color: #fff; }
+  .history-day.none { background: #e5e0d5; color: #8a8478; }
+  .history-day.future { background: #f5f3ee; color: #c5c0b8; }
+  .history-day.today { box-shadow: 0 0 0 2px #1e3a5f; }
+  .history-tooltip { display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #2d2a24; color: #fff; font-size: 10px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 10; }
+  .history-day:hover .history-tooltip { display: block; }
+
+  .reset-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; border: 1px solid #e5e0d5; background: #fff; font-size: 12px; color: #6b6560; cursor: pointer; transition: all 0.15s; }
+  .reset-btn:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+
+  .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+
+  /* ===== Diary styles ===== */
+  .diary-layout { display: flex; gap: 20px; align-items: flex-start; }
+  .diary-main { flex: 1; min-width: 0; }
+  .diary-sidebar { width: 240px; flex-shrink: 0; }
+
+  .date-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .date-nav-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #d5d0c5; background: #fff; font-size: 14px; color: #6b6560; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .date-nav-btn:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; }
+  .date-display { font-size: 16px; font-weight: 600; color: #1a1814; }
+  .today-btn { padding: 4px 10px; border-radius: 5px; border: 1px solid #d5d0c5; background: #fff; font-size: 11px; font-weight: 500; color: #6b6560; cursor: pointer; transition: all 0.15s; }
+  .today-btn:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; }
+
+  .editor-section { background: #fff; border: 1px solid #e5e0d5; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .editor-header { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #ede9e0; }
+  .editor-title { font-size: 14px; font-weight: 600; color: #1a1814; }
+  .editor-body { padding: 16px 20px; }
+  .editor-body textarea { width: 100%; min-height: 100px; border: 1px solid #e5e0d5; border-radius: 6px; padding: 10px 12px; font-family: 'Segoe UI', 'Meiryo', sans-serif; font-size: 13px; line-height: 1.7; color: #2d2a24; background: #fdfcf9; resize: vertical; transition: border-color 0.15s; }
+  .editor-body textarea:focus { outline: none; border-color: #1e3a5f; background: #fff; }
+  .editor-body textarea::placeholder { color: #c5c0b8; }
+
+  .save-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #f9f7f2; border-top: 1px solid #ede9e0; }
+  .save-status { font-size: 11px; color: #8a8478; }
+  .save-status.saved { color: #16a34a; }
+  .save-btn { padding: 6px 16px; border-radius: 6px; border: none; background: #1e3a5f; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .save-btn:hover { background: #152a45; }
+  .save-btn:disabled { background: #b8b0a4; cursor: default; }
+
+  .sidebar-card { background: #fff; border: 1px solid #e5e0d5; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .sidebar-card-header { padding: 12px 16px; font-size: 13px; font-weight: 600; color: #1a1814; border-bottom: 1px solid #ede9e0; }
+  .sidebar-card-body { padding: 12px 16px; }
+
+  .mini-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .mini-cal-nav button { background: none; border: none; font-size: 12px; color: #6b6560; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+  .mini-cal-nav button:hover { background: #f0f4f8; color: #1e3a5f; }
+  .mini-cal-nav span { font-size: 12px; font-weight: 600; color: #1a1814; }
+  .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .mini-cal-dow { font-size: 10px; color: #8a8478; padding: 2px 0; }
+  .mini-cal-day { font-size: 11px; padding: 4px 0; border-radius: 4px; cursor: pointer; color: #6b6560; transition: all 0.1s; }
+  .mini-cal-day:hover { background: #f0f4f8; }
+  .mini-cal-day.has-entry { color: #1a1814; font-weight: 600; background: #e8f5e9; }
+  .mini-cal-day.selected { background: #1e3a5f; color: #fff; font-weight: 600; }
+  .mini-cal-day.today { box-shadow: inset 0 0 0 1.5px #1e3a5f; }
+  .mini-cal-day.empty { visibility: hidden; }
+
+  .entry-list { list-style: none; }
+  .entry-list li { padding: 8px 0; border-bottom: 1px solid #f5f3ee; font-size: 12px; cursor: pointer; color: #6b6560; transition: color 0.1s; }
+  .entry-list li:last-child { border-bottom: none; }
+  .entry-list li:hover { color: #1e3a5f; }
+  .entry-list li .entry-date { font-weight: 600; color: #1a1814; }
+  .entry-list li .entry-preview { color: #8a8478; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .stat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px solid #f5f3ee; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: #6b6560; }
+  .stat-value { font-weight: 600; color: #1a1814; }
+
+  /* ===== Routine styles ===== */
+  .rt-layout { display: flex; gap: 20px; align-items: flex-start; }
+  .rt-main { flex: 1; min-width: 0; }
+  .rt-sidebar { width: 260px; flex-shrink: 0; }
+
+  .rt-section { background: #fff; border: 1px solid #e5e0d5; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .rt-section-header { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #ede9e0; }
+  .rt-section-title { font-size: 14px; font-weight: 600; color: #1a1814; flex: 1; }
+  .rt-section-body { padding: 12px 20px; }
+
+  .rt-cat-icon { font-size: 12px; font-weight: 700; flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #fff; border-radius: 50%; }
+  .rt-cat-workout { background: #dc2626; }
+  .rt-cat-beauty { background: #a855f7; }
+  .rt-cat-money { background: #16a34a; }
+  .rt-cat-reading { background: #2563eb; }
+
+  /* Check habits */
+  .rt-check-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f5f3ee; }
+  .rt-check-row:last-child { border-bottom: none; }
+  .rt-check-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; flex-shrink: 0; }
+  .rt-check-label { font-size: 13px; color: #2d2a24; flex: 1; }
+  .rt-check-row.checked .rt-check-label { color: #a3a39a; text-decoration: line-through; }
+
+  /* Workout / Reading entry rows */
+  .rt-entry-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f5f3ee; flex-wrap: wrap; }
+  .rt-entry-row:last-child { border-bottom: none; }
+  .rt-entry-input { border: 1px solid #e5e0d5; border-radius: 5px; padding: 5px 8px; font-size: 12px; color: #2d2a24; background: #fdfcf9; transition: border-color 0.15s; }
+  .rt-entry-input:focus { outline: none; border-color: #1e3a5f; background: #fff; }
+  .rt-entry-input.name { width: 180px; }
+  select.rt-entry-input.name { width: 180px; background: #fff; cursor: pointer; }
+  .rt-entry-input.num { width: 60px; text-align: right; }
+  .rt-entry-input.book-name { width: 200px; }
+  .rt-entry-input.page { width: 70px; text-align: right; }
+  .rt-entry-input.time { width: 70px; text-align: right; }
+  .rt-entry-label { font-size: 11px; color: #8a8478; flex-shrink: 0; }
+  .rt-entry-delete { background: none; border: none; color: #c5c0b8; font-size: 14px; cursor: pointer; padding: 2px 4px; transition: color 0.15s; }
+  .rt-entry-delete:hover { color: #dc2626; }
+  .rt-entry-summary { font-size: 11px; color: #1e3a5f; font-weight: 600; margin-left: auto; white-space: nowrap; }
+
+  .rt-add-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 6px; border: 1px dashed #d5d0c5; background: #fff; font-size: 12px; color: #6b6560; cursor: pointer; transition: all 0.15s; margin-top: 8px; }
+  .rt-add-btn:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; }
+
+  /* Manage habits modal */
+  .rt-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .rt-modal { background: #fff; border-radius: 12px; width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+  .rt-modal-header { padding: 16px 20px; border-bottom: 1px solid #e5e0d5; display: flex; align-items: center; justify-content: space-between; }
+  .rt-modal-header h2 { font-size: 16px; font-weight: 600; color: #1a1814; }
+  .rt-modal-close { background: none; border: none; font-size: 18px; color: #8a8478; cursor: pointer; }
+  .rt-modal-body { padding: 16px 20px; }
+  .rt-modal-footer { padding: 12px 20px; border-top: 1px solid #e5e0d5; display: flex; justify-content: flex-end; gap: 8px; }
+
+  .rt-form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .rt-form-label { font-size: 12px; font-weight: 600; color: #6b6560; width: 80px; flex-shrink: 0; }
+  .rt-form-input { flex: 1; border: 1px solid #e5e0d5; border-radius: 5px; padding: 6px 10px; font-size: 13px; color: #2d2a24; }
+  .rt-form-input:focus { outline: none; border-color: #1e3a5f; }
+  .rt-form-select { flex: 1; border: 1px solid #e5e0d5; border-radius: 5px; padding: 6px 10px; font-size: 13px; color: #2d2a24; background: #fff; }
+
+  .rt-habit-list-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f5f3ee; }
+  .rt-habit-list-item:last-child { border-bottom: none; }
+  .rt-habit-list-name { flex: 1; font-size: 13px; color: #2d2a24; }
+  .rt-habit-list-cat { font-size: 10px; padding: 1px 6px; border-radius: 3px; }
+  .rt-habit-list-btn { background: none; border: none; font-size: 11px; color: #6b6560; cursor: pointer; padding: 2px 6px; border-radius: 3px; }
+  .rt-habit-list-btn:hover { background: #f0f4f8; color: #1e3a5f; }
+  .rt-habit-list-btn.del:hover { background: #fef2f2; color: #dc2626; }
+
+  .rt-manage-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; border: 1px solid #e5e0d5; background: #fff; font-size: 12px; color: #6b6560; cursor: pointer; transition: all 0.15s; margin-bottom: 16px; }
+  .rt-manage-btn:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; }
+
+  /* Heatmap */
+  .rt-heatmap { display: flex; flex-direction: column; gap: 2px; }
+  .rt-heatmap-row { display: flex; gap: 2px; }
+  .rt-heatmap-cell { width: 12px; height: 12px; border-radius: 2px; cursor: pointer; position: relative; }
+  .rt-heatmap-cell.lv0 { background: #ebedf0; }
+  .rt-heatmap-cell.lv1 { background: #9be9a8; }
+  .rt-heatmap-cell.lv2 { background: #40c463; }
+  .rt-heatmap-cell.lv3 { background: #30a14e; }
+  .rt-heatmap-cell.lv4 { background: #216e39; }
+  .rt-heatmap-cell .rt-heatmap-tip { display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #2d2a24; color: #fff; font-size: 10px; padding: 3px 7px; border-radius: 4px; white-space: nowrap; z-index: 10; }
+  .rt-heatmap-cell:hover .rt-heatmap-tip { display: block; }
+  .rt-heatmap-months { display: flex; gap: 2px; margin-bottom: 4px; }
+  .rt-heatmap-month { font-size: 9px; color: #8a8478; }
+  .rt-heatmap-dow { font-size: 9px; color: #8a8478; width: 14px; text-align: right; margin-right: 2px; }
+
+  /* Streak & rate cards */
+  .rt-streak-item { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f5f3ee; font-size: 12px; }
+  .rt-streak-item:last-child { border-bottom: none; }
+  .rt-streak-name { color: #2d2a24; }
+  .rt-streak-val { font-weight: 600; color: #1e3a5f; }
+  .rt-streak-best { font-size: 10px; color: #8a8478; margin-left: 4px; }
+
+  .rt-rate-bar-wrap { height: 6px; background: #ebedf0; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+  .rt-rate-bar { height: 100%; border-radius: 3px; background: #16a34a; transition: width 0.3s; }
+
+  /* Suggest dropdown */
+  .rt-suggest { position: relative; }
+  .rt-suggest-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e5e0d5; border-radius: 5px; max-height: 120px; overflow-y: auto; z-index: 50; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
+  .rt-suggest-list.show { display: block; }
+  .rt-suggest-item { padding: 6px 10px; font-size: 12px; color: #2d2a24; cursor: pointer; }
+  .rt-suggest-item:hover { background: #f0f4f8; }
+
+  @media (max-width: 768px) {
+    .diary-layout { flex-direction: column-reverse; }
+    .diary-sidebar { width: 100%; }
+    .rt-layout { flex-direction: column-reverse; }
+    .rt-sidebar { width: 100%; }
+    .sub-tab { padding: 8px 16px; font-size: 13px; }
+    .rt-entry-input.name { width: 110px; }
+    .rt-entry-input.book-name { width: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Global nav ===== -->
+<div class="fixed-header">
+  <div class="fixed-header-title">Work Manager</div>
+  <nav class="fixed-header-nav">
+    <div class="nav-group">
+      <a href="gantt.html">タスク管理</a>
+      <a href="self-management.html" class="nav-active">自己管理</a>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <a href="goal-plan.html">事業計画</a>
+      <a href="../backoffice/cashflow/dashboard.html">管理会計</a>
+      <a href="../backoffice/cashflow/ss_dashboard.html">予実管理</a>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <a href="project-structure.html" class="nav-ref">プロジェクト構成</a>
+      <a href="consulting-playbook.html" class="nav-ref">コンサル技術</a>
+    </div>
+  </nav>
+</div>
+
+<!-- ===== Sub-tabs ===== -->
+<div class="sub-tabs">
+  <div class="sub-tab active" data-tab="checklist">チェックリスト</div>
+  <div class="sub-tab" data-tab="diary">日記</div>
+  <div class="sub-tab" data-tab="routine">ルーチン</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 1: チェックリスト                                         -->
+<!-- ============================================================ -->
+<div class="tab-content active" id="tab-checklist">
+  <div class="top-row">
+    <div>
+      <h1>日次チェックリスト</h1>
+      <div class="subtitle" id="cl-date-label"></div>
+    </div>
+    <button class="reset-btn" onclick="clResetToday()">
+      <span>&#8635;</span> 今日のチェックをリセット
+    </button>
+  </div>
+
+  <div class="progress-banner">
+    <div class="label">今日の進捗</div>
+    <div class="bar-wrap"><div class="bar-fill" id="cl-global-bar"></div></div>
+    <div class="count" id="cl-global-count">0 / 0</div>
+  </div>
+
+  <div id="checklist-root"></div>
+
+  <div class="history-section">
+    <div class="history-title">直近14日間の達成状況</div>
+    <div class="history-grid" id="cl-history-grid"></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 2: 日記                                                   -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-diary">
+  <div class="diary-layout">
+    <div class="diary-main">
+      <div class="date-nav">
+        <button class="date-nav-btn" id="di-prev-day" title="前日">&#9664;</button>
+        <span class="date-display" id="di-date-display"></span>
+        <button class="date-nav-btn" id="di-next-day" title="翌日">&#9654;</button>
+        <button class="today-btn" id="di-today-btn">今日</button>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-header">
+          <div class="section-icon">1</div>
+          <div class="editor-title">やったこと</div>
+        </div>
+        <div class="editor-body">
+          <textarea id="field-done" placeholder="今日やったことを箇条書きで記録する"></textarea>
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-header">
+          <div class="section-icon">2</div>
+          <div class="editor-title">進捗・成果</div>
+        </div>
+        <div class="editor-body">
+          <textarea id="field-progress" placeholder="前に進んだこと、得られた成果を記録する"></textarea>
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-header">
+          <div class="section-icon">3</div>
+          <div class="editor-title">明日やること</div>
+        </div>
+        <div class="editor-body">
+          <textarea id="field-tomorrow" placeholder="明日の優先タスクを決めておく"></textarea>
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-header">
+          <div class="section-icon">4</div>
+          <div class="editor-title">気づき</div>
+        </div>
+        <div class="editor-body">
+          <textarea id="field-insight" placeholder="判断の振り返り、改善のヒント、思いついたアイデアなど"></textarea>
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="save-bar">
+          <span class="save-status" id="di-save-status"></span>
+          <button class="save-btn" id="di-save-btn">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="diary-sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">カレンダー</div>
+        <div class="sidebar-card-body">
+          <div class="mini-cal-nav">
+            <button id="di-cal-prev">&#9664;</button>
+            <span id="di-cal-month-label"></span>
+            <button id="di-cal-next">&#9654;</button>
+          </div>
+          <div class="mini-cal-grid" id="di-cal-grid"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">統計</div>
+        <div class="sidebar-card-body" id="di-stats-body"></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">最近のエントリ</div>
+        <div class="sidebar-card-body">
+          <ul class="entry-list" id="di-recent-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 3: ルーチン                                               -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-routine">
+  <div class="rt-layout">
+    <div class="rt-main">
+      <div class="date-nav">
+        <button class="date-nav-btn" id="rt-prev-day" title="前日">&#9664;</button>
+        <span class="date-display" id="rt-date-display"></span>
+        <button class="date-nav-btn" id="rt-next-day" title="翌日">&#9654;</button>
+        <button class="today-btn" id="rt-today-btn">今日</button>
+        <button class="rt-manage-btn" id="rt-manage-btn" style="margin-left:auto;margin-bottom:0">習慣を管理</button>
+      </div>
+
+      <div id="rt-sections"></div>
+    </div>
+
+    <div class="rt-sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">達成ヒートマップ（90日）</div>
+        <div class="sidebar-card-body" id="rt-heatmap"></div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">ストリーク</div>
+        <div class="sidebar-card-body" id="rt-streaks"></div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">達成率</div>
+        <div class="sidebar-card-body" id="rt-rates"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="rt-modal-root"></div>
+
+<script>
+/* ================================================================
+   Sub-tab switching
+   ================================================================ */
+const TAB_STORAGE_KEY = 'self-mgmt-active-tab';
+
+document.querySelectorAll('.sub-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const id = tab.dataset.tab;
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+    localStorage.setItem(TAB_STORAGE_KEY, id);
+  });
+});
+
+// Restore last active tab
+(function() {
+  const saved = localStorage.getItem(TAB_STORAGE_KEY);
+  if (saved) {
+    const tab = document.querySelector(`.sub-tab[data-tab="${saved}"]`);
+    if (tab) tab.click();
+  }
+})();
+
+/* ================================================================
+   CHECKLIST
+   ================================================================ */
+const CL_SECTIONS = [
+  {
+    id: 'morning', icon: '1', title: '朝イチ（始業時）', time: '9:00',
+    items: [
+      { id: 'm1', title: '口座残高・資金繰り確認', desc: 'freee会計で前日の入出金・残高を確認', tag: 'finance' },
+      { id: 'm2', title: 'Meta広告：前日の配信実績確認', desc: 'CPA / ROAS / CTR / CVR / CPM — 異常値がないかチェック', tag: 'ad' },
+      { id: 'm3', title: 'Slack・メール：未対応の連絡確認', desc: 'クライアント・OP・業務委託からの連絡を確認・返信', tag: 'ops' },
+      { id: 'm4', title: '今日の予定・MTG確認', desc: 'カレンダーを確認し、準備が必要な会議をチェック', tag: 'ops' },
+    ]
+  },
+  {
+    id: 'daytime', icon: '2', title: '日中（実行）', time: '10:00-17:00',
+    items: [
+      { id: 'd1', title: 'ピンタレストのブックマーク 5件', desc: 'クリエイティブ参考素材のストック', tag: 'creative' },
+      { id: 'd2', title: 'クリエイティブ生成 3件', desc: '新規広告クリエイティブの制作', tag: 'creative' },
+      { id: 'd3', title: 'OP稼働状況の確認', desc: 'BPO案件の各OPの進捗・問題がないか確認', tag: 'bpo' },
+    ]
+  },
+  {
+    id: 'evening', icon: '3', title: '終業時（クロージング）', time: '17:00-18:00',
+    items: [
+      { id: 'e1', title: '今日のタスク完了状況の確認', desc: 'todo.mdの進捗を更新。未完了タスクの理由を記録', tag: 'ops' },
+      { id: 'e2', title: '明日の優先タスク確認', desc: '明日の最優先3つを決めておく', tag: 'ops' },
+      { id: 'e3', title: 'Meta広告：当日の配信実績 最終確認', desc: '日中の推移を確認し、異常があれば即対応', tag: 'ad' },
+    ]
+  }
+];
+
+const CL_TAG_LABELS = {
+  finance: { label: '経営・財務', cls: 'tag-finance' },
+  ad: { label: 'Meta広告', cls: 'tag-ad' },
+  bpo: { label: 'BPO', cls: 'tag-bpo' },
+  creative: { label: 'クリエイティブ', cls: 'tag-creative' },
+  ops: { label: '運営', cls: 'tag-ops' },
+};
+
+const DAYS = ['日','月','火','水','木','金','土'];
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function todayDate() {
+  const d = new Date(); d.setHours(0,0,0,0); return d;
+}
+
+function formatDateDisplay(d) {
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}（${DAYS[d.getDay()]}）`;
+}
+
+// --- Checklist state ---
+function clGetState() {
+  try { return JSON.parse(localStorage.getItem('daily-checklist-state')) || {}; } catch { return {}; }
+}
+function clSaveState(s) { localStorage.setItem('daily-checklist-state', JSON.stringify(s)); }
+function clGetTodayChecked() { return clGetState()[todayKey()] || {}; }
+function clSetItemChecked(id, v) {
+  const s = clGetState(); const k = todayKey();
+  if (!s[k]) s[k] = {};
+  s[k][id] = v;
+  clSaveState(s);
+}
+function clAllIds() { return CL_SECTIONS.flatMap(s => s.items.map(i => i.id)); }
+
+function clRender() {
+  const root = document.getElementById('checklist-root');
+  root.innerHTML = '';
+  const checked = clGetTodayChecked();
+  const allIds = clAllIds();
+  const totalChecked = allIds.filter(id => checked[id]).length;
+
+  document.getElementById('cl-global-bar').style.width = allIds.length ? `${(totalChecked/allIds.length)*100}%` : '0%';
+  document.getElementById('cl-global-count').textContent = `${totalChecked} / ${allIds.length}`;
+
+  const now = new Date();
+  document.getElementById('cl-date-label').textContent = formatDateDisplay(now);
+
+  CL_SECTIONS.forEach(section => {
+    const sChecked = section.items.filter(i => checked[i.id]).length;
+    const allDone = sChecked === section.items.length;
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.innerHTML = `
+      <div class="section-header" data-section="${section.id}">
+        <div class="section-icon">${section.icon}</div>
+        <div class="section-title">${section.title}</div>
+        <div class="section-time">${section.time}</div>
+        <div class="section-progress ${allDone?'done':''}">${sChecked}/${section.items.length}</div>
+        <div class="section-toggle" data-section="${section.id}">&#9660;</div>
+      </div>
+      <div class="section-body" id="cl-body-${section.id}">
+        ${section.items.map(item => {
+          const ic = !!checked[item.id];
+          const tag = CL_TAG_LABELS[item.tag] || {};
+          return `<div class="check-item ${ic?'checked':''}" data-item="${item.id}">
+            <input type="checkbox" class="item-cb" data-item="${item.id}" ${ic?'checked':''}>
+            <div class="item-content">
+              <div class="item-title">${item.title}<span class="item-tag ${tag.cls||''}">${tag.label||''}</span></div>
+              <div class="item-desc">${item.desc}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    root.appendChild(div);
+  });
+
+  document.querySelectorAll('#checklist-root .item-cb').forEach(cb => {
+    cb.addEventListener('change', e => { clSetItemChecked(e.target.dataset.item, e.target.checked); clRender(); });
+  });
+  document.querySelectorAll('#checklist-root .section-header').forEach(h => {
+    h.addEventListener('click', e => {
+      if (e.target.classList.contains('item-cb')) return;
+      const body = document.getElementById('cl-body-' + h.dataset.section);
+      const toggle = h.querySelector('.section-toggle');
+      body.classList.toggle('collapsed');
+      toggle.classList.toggle('collapsed');
+    });
+  });
+  clRenderHistory();
+}
+
+function clResetToday() {
+  if (!confirm('今日のチェックをすべてリセットしますか？')) return;
+  const s = clGetState(); delete s[todayKey()]; clSaveState(s); clRender();
+}
+
+function clRenderHistory() {
+  const grid = document.getElementById('cl-history-grid');
+  grid.innerHTML = '';
+  const state = clGetState();
+  const allIds = clAllIds();
+  const total = allIds.length;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const key = dateKey(d);
+    const dayChecked = state[key] || {};
+    const count = allIds.filter(id => dayChecked[id]).length;
+    const isToday = i === 0;
+    let cls = 'none';
+    if (count === total && total > 0) cls = 'full';
+    else if (count > 0) cls = 'partial';
+    const el = document.createElement('div');
+    el.className = `history-day ${cls} ${isToday?'today':''}`;
+    el.innerHTML = `${d.getDate()}<div class="history-tooltip">${d.getMonth()+1}/${d.getDate()}（${DAYS[d.getDay()]}）${count}/${total} 完了</div>`;
+    grid.appendChild(el);
+  }
+}
+
+function clCleanup() {
+  const state = clGetState();
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const cutoffKey = dateKey(cutoff);
+  let changed = false;
+  for (const key of Object.keys(state)) { if (key < cutoffKey) { delete state[key]; changed = true; } }
+  if (changed) clSaveState(state);
+}
+
+clCleanup();
+clRender();
+
+/* ================================================================
+   DIARY
+   ================================================================ */
+const DI_FIELDS = ['done', 'progress', 'tomorrow', 'insight'];
+const DI_STORAGE_KEY = 'diary-entries';
+
+let diCurrentDate = todayDate();
+let diCalViewYear = diCurrentDate.getFullYear();
+let diCalViewMonth = diCurrentDate.getMonth();
+let diDirty = false;
+let diAutoSaveTimer = null;
+
+function diGetAllEntries() {
+  try { return JSON.parse(localStorage.getItem(DI_STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function diSaveAllEntries(e) { localStorage.setItem(DI_STORAGE_KEY, JSON.stringify(e)); }
+function diGetEntry(k) { return diGetAllEntries()[k] || null; }
+
+function diSaveEntry(k, data) {
+  const entries = diGetAllEntries();
+  data.updatedAt = new Date().toISOString();
+  if (!data.createdAt) {
+    const existing = entries[k];
+    data.createdAt = existing ? existing.createdAt : data.updatedAt;
+  }
+  entries[k] = data;
+  diSaveAllEntries(entries);
+}
+
+function diHasEntry(k) {
+  const e = diGetAllEntries()[k];
+  return e ? DI_FIELDS.some(f => e[f] && e[f].trim()) : false;
+}
+
+function diLoadDate(d) {
+  diCurrentDate = new Date(d); diCurrentDate.setHours(0,0,0,0);
+  const key = dateKey(diCurrentDate);
+  const entry = diGetEntry(key);
+  DI_FIELDS.forEach(f => { document.getElementById('field-' + f).value = entry ? (entry[f] || '') : ''; });
+  document.getElementById('di-date-display').textContent = formatDateDisplay(diCurrentDate);
+  diDirty = false;
+  diUpdateSaveStatus();
+  diRenderCalendar();
+  diRenderRecent();
+  diRenderStats();
+}
+
+function diCollectForm() {
+  const data = {};
+  DI_FIELDS.forEach(f => { data[f] = document.getElementById('field-' + f).value; });
+  return data;
+}
+
+function diDoSave() {
+  const key = dateKey(diCurrentDate);
+  const data = diCollectForm();
+  const existing = diGetEntry(key);
+  if (existing) data.createdAt = existing.createdAt;
+  diSaveEntry(key, data);
+  diDirty = false;
+  diUpdateSaveStatus('saved');
+  diRenderCalendar();
+  diRenderRecent();
+  diRenderStats();
+}
+
+function diUpdateSaveStatus(state) {
+  const el = document.getElementById('di-save-status');
+  const btn = document.getElementById('di-save-btn');
+  if (state === 'saved') { el.textContent = '保存しました'; el.className = 'save-status saved'; btn.disabled = true; }
+  else if (diDirty) { el.textContent = '未保存の変更があります'; el.className = 'save-status'; btn.disabled = false; }
+  else { el.textContent = ''; el.className = 'save-status'; btn.disabled = true; }
+}
+
+function diRenderCalendar() {
+  document.getElementById('di-cal-month-label').textContent = `${diCalViewYear}/${diCalViewMonth + 1}`;
+  const grid = document.getElementById('di-cal-grid');
+  grid.innerHTML = '';
+  DAYS.forEach(d => { const el = document.createElement('div'); el.className = 'mini-cal-dow'; el.textContent = d; grid.appendChild(el); });
+
+  const firstDay = new Date(diCalViewYear, diCalViewMonth, 1).getDay();
+  const daysInMonth = new Date(diCalViewYear, diCalViewMonth + 1, 0).getDate();
+  const entries = diGetAllEntries();
+  const today = todayDate();
+  const selectedKey = dateKey(diCurrentDate);
+
+  for (let i = 0; i < firstDay; i++) { const el = document.createElement('div'); el.className = 'mini-cal-day empty'; grid.appendChild(el); }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(diCalViewYear, diCalViewMonth, day);
+    const key = dateKey(d);
+    const el = document.createElement('div');
+    let cls = 'mini-cal-day';
+    if (key === selectedKey) cls += ' selected';
+    if (key === dateKey(today)) cls += ' today';
+    if (entries[key] && DI_FIELDS.some(f => entries[key][f] && entries[key][f].trim())) cls += ' has-entry';
+    el.className = cls;
+    el.textContent = day;
+    el.addEventListener('click', () => {
+      if (diDirty && !confirm('未保存の変更があります。破棄しますか？')) return;
+      diLoadDate(d);
+    });
+    grid.appendChild(el);
+  }
+}
+
+function diRenderRecent() {
+  const list = document.getElementById('di-recent-list');
+  list.innerHTML = '';
+  const entries = diGetAllEntries();
+  const keys = Object.keys(entries).filter(k => DI_FIELDS.some(f => entries[k][f] && entries[k][f].trim())).sort().reverse().slice(0, 10);
+  if (!keys.length) { list.innerHTML = '<li style="color:#c5c0b8;cursor:default">まだエントリがありません</li>'; return; }
+  keys.forEach(key => {
+    const entry = entries[key];
+    const p = key.split('-');
+    const d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    const preview = DI_FIELDS.map(f => entry[f]).filter(v => v && v.trim()).join(' / ').substring(0, 60);
+    const li = document.createElement('li');
+    li.innerHTML = `<div class="entry-date">${d.getMonth()+1}/${d.getDate()}（${DAYS[d.getDay()]}）</div><div class="entry-preview">${preview || '（空）'}</div>`;
+    li.addEventListener('click', () => {
+      if (diDirty && !confirm('未保存の変更があります。破棄しますか？')) return;
+      diLoadDate(d);
+    });
+    list.appendChild(li);
+  });
+}
+
+function diRenderStats() {
+  const body = document.getElementById('di-stats-body');
+  const entries = diGetAllEntries();
+  const keys = Object.keys(entries).filter(k => DI_FIELDS.some(f => entries[k][f] && entries[k][f].trim()));
+  const total = keys.length;
+  const now = todayDate();
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const thisMonth = keys.filter(k => k.startsWith(monthPrefix)).length;
+  let streak = 0;
+  const d = new Date(now);
+  while (keys.includes(dateKey(d))) { streak++; d.setDate(d.getDate() - 1); }
+  body.innerHTML = `
+    <div class="stat-row"><span class="stat-label">総エントリ数</span><span class="stat-value">${total}</span></div>
+    <div class="stat-row"><span class="stat-label">今月</span><span class="stat-value">${thisMonth}</span></div>
+    <div class="stat-row"><span class="stat-label">連続記録</span><span class="stat-value">${streak}日</span></div>`;
+}
+
+// Diary event listeners
+document.getElementById('di-save-btn').addEventListener('click', diDoSave);
+document.getElementById('di-prev-day').addEventListener('click', () => {
+  if (diDirty && !confirm('未保存の変更があります。破棄しますか？')) return;
+  const d = new Date(diCurrentDate); d.setDate(d.getDate() - 1); diLoadDate(d);
+});
+document.getElementById('di-next-day').addEventListener('click', () => {
+  if (diDirty && !confirm('未保存の変更があります。破棄しますか？')) return;
+  const d = new Date(diCurrentDate); d.setDate(d.getDate() + 1); diLoadDate(d);
+});
+document.getElementById('di-today-btn').addEventListener('click', () => {
+  if (diDirty && !confirm('未保存の変更があります。破棄しますか？')) return;
+  diLoadDate(todayDate());
+  diCalViewYear = diCurrentDate.getFullYear();
+  diCalViewMonth = diCurrentDate.getMonth();
+  diRenderCalendar();
+});
+document.getElementById('di-cal-prev').addEventListener('click', () => {
+  diCalViewMonth--; if (diCalViewMonth < 0) { diCalViewMonth = 11; diCalViewYear--; } diRenderCalendar();
+});
+document.getElementById('di-cal-next').addEventListener('click', () => {
+  diCalViewMonth++; if (diCalViewMonth > 11) { diCalViewMonth = 0; diCalViewYear++; } diRenderCalendar();
+});
+
+DI_FIELDS.forEach(f => {
+  document.getElementById('field-' + f).addEventListener('input', () => {
+    diDirty = true; diUpdateSaveStatus();
+    clearTimeout(diAutoSaveTimer);
+    diAutoSaveTimer = setTimeout(diDoSave, 3000);
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (diDirty) diDoSave(); }
+});
+
+diLoadDate(todayDate());
+
+/* ================================================================
+   ROUTINE TRACKER
+   ================================================================ */
+const RT_HABITS_KEY = 'routine-habits';
+const RT_RECORDS_KEY = 'routine-records';
+
+const RT_CATEGORIES = {
+  workout: { label: '筋トレ', cls: 'rt-cat-workout', icon: 'W' },
+  beauty:  { label: '美容',   cls: 'rt-cat-beauty',  icon: 'B' },
+  money:   { label: 'お金',   cls: 'rt-cat-money',   icon: '$' },
+  reading: { label: '読書',   cls: 'rt-cat-reading',  icon: 'R' },
+};
+
+const RT_DEFAULT_HABITS = [
+  { id: 'h1', name: 'スキンケア',  category: 'beauty',  type: 'check', order: 0 },
+  { id: 'h2', name: 'サプリ',      category: 'beauty',  type: 'check', order: 1 },
+  { id: 'h3', name: 'プロテイン',  category: 'beauty',  type: 'check', order: 2 },
+  { id: 'h4', name: '支出記録',    category: 'money',   type: 'check', order: 3 },
+];
+
+const RT_WORKOUT_MASTER_KEY = 'routine-workout-master';
+
+const RT_DEFAULT_EXERCISES = [
+  // 胸
+  { id: 'ex01', name: 'ベンチプレス', group: '胸' },
+  { id: 'ex02', name: 'インクラインベンチプレス', group: '胸' },
+  { id: 'ex03', name: 'ダンベルプレス', group: '胸' },
+  { id: 'ex04', name: 'ダンベルフライ', group: '胸' },
+  { id: 'ex05', name: 'チェストプレス（マシン）', group: '胸' },
+  { id: 'ex06', name: 'ケーブルクロスオーバー', group: '胸' },
+  { id: 'ex07', name: 'ディップス', group: '胸' },
+  { id: 'ex08', name: '腕立て伏せ', group: '胸' },
+  // 背中
+  { id: 'ex10', name: 'デッドリフト', group: '背中' },
+  { id: 'ex11', name: '懸垂（チンニング）', group: '背中' },
+  { id: 'ex12', name: 'ラットプルダウン', group: '背中' },
+  { id: 'ex13', name: 'ベントオーバーロウ', group: '背中' },
+  { id: 'ex14', name: 'シーテッドロウ', group: '背中' },
+  { id: 'ex15', name: 'ワンハンドダンベルロウ', group: '背中' },
+  { id: 'ex16', name: 'Tバーロウ', group: '背中' },
+  // 肩
+  { id: 'ex20', name: 'ショルダープレス', group: '肩' },
+  { id: 'ex21', name: 'サイドレイズ', group: '肩' },
+  { id: 'ex22', name: 'フロントレイズ', group: '肩' },
+  { id: 'ex23', name: 'リアレイズ', group: '肩' },
+  { id: 'ex24', name: 'アップライトロウ', group: '肩' },
+  { id: 'ex25', name: 'アーノルドプレス', group: '肩' },
+  { id: 'ex26', name: 'フェイスプル', group: '肩' },
+  // 腕
+  { id: 'ex30', name: 'バーベルカール', group: '腕' },
+  { id: 'ex31', name: 'ダンベルカール', group: '腕' },
+  { id: 'ex32', name: 'ハンマーカール', group: '腕' },
+  { id: 'ex33', name: 'コンセントレーションカール', group: '腕' },
+  { id: 'ex34', name: 'トライセプスプッシュダウン', group: '腕' },
+  { id: 'ex35', name: 'フレンチプレス', group: '腕' },
+  { id: 'ex36', name: 'スカルクラッシャー', group: '腕' },
+  { id: 'ex37', name: 'キックバック', group: '腕' },
+  // 脚
+  { id: 'ex40', name: 'スクワット', group: '脚' },
+  { id: 'ex41', name: 'フロントスクワット', group: '脚' },
+  { id: 'ex42', name: 'レッグプレス', group: '脚' },
+  { id: 'ex43', name: 'レッグエクステンション', group: '脚' },
+  { id: 'ex44', name: 'レッグカール', group: '脚' },
+  { id: 'ex45', name: 'ブルガリアンスクワット', group: '脚' },
+  { id: 'ex46', name: 'ルーマニアンデッドリフト', group: '脚' },
+  { id: 'ex47', name: 'ランジ', group: '脚' },
+  { id: 'ex48', name: 'カーフレイズ', group: '脚' },
+  { id: 'ex49', name: 'ヒップスラスト', group: '脚' },
+  // 腹
+  { id: 'ex50', name: 'クランチ', group: '腹' },
+  { id: 'ex51', name: 'レッグレイズ', group: '腹' },
+  { id: 'ex52', name: 'プランク', group: '腹' },
+  { id: 'ex53', name: 'アブローラー', group: '腹' },
+  { id: 'ex54', name: 'ハンギングレッグレイズ', group: '腹' },
+  { id: 'ex55', name: 'ケーブルクランチ', group: '腹' },
+  // 有酸素・全身
+  { id: 'ex60', name: 'トレッドミル', group: '有酸素' },
+  { id: 'ex61', name: 'エアロバイク', group: '有酸素' },
+  { id: 'ex62', name: 'ローイングマシン', group: '有酸素' },
+  { id: 'ex63', name: 'バーピー', group: '全身' },
+  { id: 'ex64', name: 'ケトルベルスイング', group: '全身' },
+];
+
+function rtGetExercises() {
+  const raw = localStorage.getItem(RT_WORKOUT_MASTER_KEY);
+  if (!raw) { rtSaveExercises(RT_DEFAULT_EXERCISES); return [...RT_DEFAULT_EXERCISES]; }
+  try { return JSON.parse(raw); } catch { return [...RT_DEFAULT_EXERCISES]; }
+}
+function rtSaveExercises(e) { localStorage.setItem(RT_WORKOUT_MASTER_KEY, JSON.stringify(e)); }
+
+let rtCurrentDate = todayDate();
+let rtAutoSaveTimer = null;
+
+// --- Storage ---
+function rtGetHabits() {
+  const raw = localStorage.getItem(RT_HABITS_KEY);
+  if (!raw) { rtSaveHabits(RT_DEFAULT_HABITS); return [...RT_DEFAULT_HABITS]; }
+  try { return JSON.parse(raw); } catch { return [...RT_DEFAULT_HABITS]; }
+}
+function rtSaveHabits(h) { localStorage.setItem(RT_HABITS_KEY, JSON.stringify(h)); }
+
+function rtGetAllRecords() {
+  try { return JSON.parse(localStorage.getItem(RT_RECORDS_KEY)) || {}; } catch { return {}; }
+}
+function rtSaveAllRecords(r) { localStorage.setItem(RT_RECORDS_KEY, JSON.stringify(r)); }
+
+function rtGetRecord(key) { return rtGetAllRecords()[key] || {}; }
+function rtSaveRecord(key, data) {
+  const all = rtGetAllRecords();
+  all[key] = data;
+  rtSaveAllRecords(all);
+}
+
+function rtNextId() { return 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+
+// --- Render main ---
+function rtRender() {
+  const key = dateKey(rtCurrentDate);
+  document.getElementById('rt-date-display').textContent = formatDateDisplay(rtCurrentDate);
+
+  const habits = rtGetHabits();
+  const record = rtGetRecord(key);
+  const root = document.getElementById('rt-sections');
+  root.innerHTML = '';
+
+  // Group by category
+  const groups = {};
+  for (const cat of Object.keys(RT_CATEGORIES)) groups[cat] = [];
+  // Workout and reading are always shown even if no habits
+  habits.forEach(h => {
+    if (groups[h.category]) groups[h.category].push(h);
+  });
+
+  // Workout section (special: entry rows)
+  const wSec = document.createElement('div');
+  wSec.className = 'rt-section';
+  const workoutEntries = record.workout || [];
+  wSec.innerHTML = `
+    <div class="rt-section-header">
+      <div class="rt-cat-icon rt-cat-workout">W</div>
+      <div class="rt-section-title">筋トレ</div>
+    </div>
+    <div class="rt-section-body" id="rt-workout-body">
+      ${workoutEntries.map((e, i) => rtWorkoutRowHTML(e, i)).join('')}
+      <button class="rt-add-btn" id="rt-add-workout">+ 種目を追加</button>
+    </div>`;
+  root.appendChild(wSec);
+
+  // Check-type categories
+  ['beauty', 'money'].forEach(cat => {
+    const catHabits = groups[cat];
+    if (!catHabits.length) return;
+    const catInfo = RT_CATEGORIES[cat];
+    const sec = document.createElement('div');
+    sec.className = 'rt-section';
+    sec.innerHTML = `
+      <div class="rt-section-header">
+        <div class="rt-cat-icon ${catInfo.cls}">${catInfo.icon}</div>
+        <div class="rt-section-title">${catInfo.label}</div>
+      </div>
+      <div class="rt-section-body">
+        ${catHabits.map(h => {
+          const checked = !!(record.checks && record.checks[h.id]);
+          return `<div class="rt-check-row ${checked?'checked':''}" data-hid="${h.id}">
+            <input type="checkbox" data-hid="${h.id}" ${checked?'checked':''}>
+            <span class="rt-check-label">${h.name}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    root.appendChild(sec);
+  });
+
+  // Reading section (special: entry rows)
+  const rSec = document.createElement('div');
+  rSec.className = 'rt-section';
+  const readEntries = record.reading || [];
+  rSec.innerHTML = `
+    <div class="rt-section-header">
+      <div class="rt-cat-icon rt-cat-reading">R</div>
+      <div class="rt-section-title">読書</div>
+    </div>
+    <div class="rt-section-body" id="rt-reading-body">
+      ${readEntries.map((e, i) => rtReadingRowHTML(e, i)).join('')}
+      <button class="rt-add-btn" id="rt-add-reading">+ 書籍を追加</button>
+    </div>`;
+  root.appendChild(rSec);
+
+  // Event listeners
+  rtBindEvents(key);
+  rtRenderHeatmap();
+  rtRenderStreaks();
+  rtRenderRates();
+}
+
+function rtWorkoutRowHTML(entry, idx) {
+  const exercises = rtGetExercises();
+  const groups = {};
+  exercises.forEach(ex => { if (!groups[ex.group]) groups[ex.group] = []; groups[ex.group].push(ex); });
+  const isCustom = entry.name && !exercises.some(ex => ex.name === entry.name);
+  const selectVal = isCustom ? '__custom__' : (entry.name || '');
+
+  let options = '<option value="">-- 種目を選択 --</option>';
+  for (const [group, exs] of Object.entries(groups)) {
+    options += `<optgroup label="${group}">`;
+    exs.forEach(ex => { options += `<option value="${ex.name}" ${ex.name===selectVal?'selected':''}>${ex.name}</option>`; });
+    options += '</optgroup>';
+  }
+  options += `<option value="__custom__" ${isCustom?'selected':''}>その他（自由入力）</option>`;
+
+  return `<div class="rt-entry-row" data-widx="${idx}">
+    <select class="rt-entry-input name rt-exercise-select" data-field="name" data-widx="${idx}">${options}</select>
+    ${isCustom || selectVal === '__custom__' ? `<input class="rt-entry-input name rt-exercise-custom" data-widx="${idx}" placeholder="種目名を入力" value="${isCustom ? entry.name : ''}">` : ''}
+    <input class="rt-entry-input num" data-field="weight" placeholder="kg" value="${entry.weight||''}" type="number" min="0" step="0.5">
+    <span class="rt-entry-label">kg</span>
+    <input class="rt-entry-input num" data-field="reps" placeholder="回" value="${entry.reps||''}" type="number" min="0">
+    <span class="rt-entry-label">回</span>
+    <input class="rt-entry-input num" data-field="sets" placeholder="set" value="${entry.sets||''}" type="number" min="0">
+    <span class="rt-entry-label">set</span>
+    ${entry.weight && entry.reps && entry.sets ? `<span class="rt-entry-summary">${Number(entry.weight)*Number(entry.reps)*Number(entry.sets)}kg総量</span>` : ''}
+    <button class="rt-entry-delete" data-widx="${idx}" title="削除">&#10005;</button>
+  </div>`;
+}
+
+function rtReadingRowHTML(entry, idx) {
+  const pages = (entry.pageTo && entry.pageFrom) ? Number(entry.pageTo) - Number(entry.pageFrom) : '';
+  return `<div class="rt-entry-row" data-ridx="${idx}">
+    <div class="rt-suggest">
+      <input class="rt-entry-input book-name rt-book-input" data-field="book" placeholder="書籍名" value="${entry.book||''}">
+      <div class="rt-suggest-list" id="rt-suggest-${idx}"></div>
+    </div>
+    <input class="rt-entry-input page" data-field="pageFrom" placeholder="開始p" value="${entry.pageFrom||''}" type="number" min="0">
+    <span class="rt-entry-label">→</span>
+    <input class="rt-entry-input page" data-field="pageTo" placeholder="終了p" value="${entry.pageTo||''}" type="number" min="0">
+    <span class="rt-entry-label">p</span>
+    <input class="rt-entry-input time" data-field="minutes" placeholder="分" value="${entry.minutes||''}" type="number" min="0">
+    <span class="rt-entry-label">分</span>
+    ${pages ? `<span class="rt-entry-summary">${pages}p読了</span>` : ''}
+    <button class="rt-entry-delete" data-ridx="${idx}" title="削除">&#10005;</button>
+  </div>`;
+}
+
+function rtBindEvents(key) {
+  // Check habits
+  document.querySelectorAll('#rt-sections .rt-check-row input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const rec = rtGetRecord(key);
+      if (!rec.checks) rec.checks = {};
+      rec.checks[cb.dataset.hid] = cb.checked;
+      rtSaveRecord(key, rec);
+      rtRender();
+    });
+  });
+
+  // Workout add
+  document.getElementById('rt-add-workout')?.addEventListener('click', () => {
+    const rec = rtGetRecord(key);
+    if (!rec.workout) rec.workout = [];
+    rec.workout.push({ name: '', weight: '', reps: '', sets: '' });
+    rtSaveRecord(key, rec);
+    rtRender();
+    const selects = document.querySelectorAll('#rt-workout-body .rt-entry-row:last-child .rt-exercise-select');
+    if (selects.length) selects[selects.length-1].focus();
+  });
+
+  // Workout select change
+  document.querySelectorAll('.rt-exercise-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const idx = parseInt(sel.dataset.widx);
+      const rec = rtGetRecord(key);
+      if (rec.workout && rec.workout[idx]) {
+        rec.workout[idx].name = sel.value === '__custom__' ? '' : sel.value;
+        rtSaveRecord(key, rec);
+        rtRender();
+      }
+    });
+  });
+
+  // Workout custom name input
+  document.querySelectorAll('.rt-exercise-custom').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx = parseInt(inp.dataset.widx);
+      clearTimeout(rtAutoSaveTimer);
+      rtAutoSaveTimer = setTimeout(() => {
+        const rec = rtGetRecord(key);
+        if (rec.workout && rec.workout[idx]) {
+          rec.workout[idx].name = inp.value;
+          rtSaveRecord(key, rec);
+        }
+      }, 1500);
+    });
+  });
+
+  // Workout number inputs
+  document.querySelectorAll('#rt-workout-body .rt-entry-row').forEach(row => {
+    const idx = parseInt(row.dataset.widx);
+    row.querySelectorAll('input[type="number"]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        clearTimeout(rtAutoSaveTimer);
+        rtAutoSaveTimer = setTimeout(() => {
+          const rec = rtGetRecord(key);
+          if (rec.workout && rec.workout[idx]) {
+            rec.workout[idx][inp.dataset.field] = inp.value;
+            rtSaveRecord(key, rec);
+            rtRender();
+          }
+        }, 1500);
+      });
+    });
+  });
+
+  // Workout delete
+  document.querySelectorAll('#rt-workout-body .rt-entry-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rec = rtGetRecord(key);
+      rec.workout.splice(parseInt(btn.dataset.widx), 1);
+      rtSaveRecord(key, rec);
+      rtRender();
+    });
+  });
+
+  // Reading add
+  document.getElementById('rt-add-reading')?.addEventListener('click', () => {
+    const rec = rtGetRecord(key);
+    if (!rec.reading) rec.reading = [];
+    rec.reading.push({ book: '', pageFrom: '', pageTo: '', minutes: '' });
+    rtSaveRecord(key, rec);
+    rtRender();
+    const inputs = document.querySelectorAll('#rt-reading-body .rt-entry-row:last-child .rt-book-input');
+    if (inputs.length) inputs[inputs.length-1].focus();
+  });
+
+  // Reading inputs
+  document.querySelectorAll('#rt-reading-body .rt-entry-row').forEach(row => {
+    const idx = parseInt(row.dataset.ridx);
+    row.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        clearTimeout(rtAutoSaveTimer);
+        rtAutoSaveTimer = setTimeout(() => {
+          const rec = rtGetRecord(key);
+          if (rec.reading && rec.reading[idx]) {
+            rec.reading[idx][inp.dataset.field] = inp.value;
+            rtSaveRecord(key, rec);
+            rtRender();
+          }
+        }, 1500);
+      });
+    });
+  });
+
+  // Reading delete
+  document.querySelectorAll('#rt-reading-body .rt-entry-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rec = rtGetRecord(key);
+      rec.reading.splice(parseInt(btn.dataset.ridx), 1);
+      rtSaveRecord(key, rec);
+      rtRender();
+    });
+  });
+
+  // Book name suggest
+  document.querySelectorAll('.rt-book-input').forEach(inp => {
+    const row = inp.closest('.rt-entry-row');
+    const idx = parseInt(row.dataset.ridx);
+    const suggestEl = document.getElementById('rt-suggest-' + idx);
+    inp.addEventListener('focus', () => rtShowBookSuggest(inp, suggestEl));
+    inp.addEventListener('input', () => rtShowBookSuggest(inp, suggestEl));
+    inp.addEventListener('blur', () => setTimeout(() => suggestEl.classList.remove('show'), 150));
+  });
+}
+
+function rtShowBookSuggest(inp, listEl) {
+  const val = inp.value.trim().toLowerCase();
+  const books = rtGetAllBookNames();
+  const filtered = val ? books.filter(b => b.toLowerCase().includes(val)) : books;
+  if (!filtered.length) { listEl.classList.remove('show'); return; }
+  listEl.innerHTML = filtered.slice(0, 8).map(b => `<div class="rt-suggest-item">${b}</div>`).join('');
+  listEl.classList.add('show');
+  listEl.querySelectorAll('.rt-suggest-item').forEach(item => {
+    item.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      inp.value = item.textContent;
+      inp.dispatchEvent(new Event('input'));
+      listEl.classList.remove('show');
+    });
+  });
+}
+
+function rtGetAllBookNames() {
+  const records = rtGetAllRecords();
+  const names = new Set();
+  for (const rec of Object.values(records)) {
+    if (rec.reading) rec.reading.forEach(r => { if (r.book && r.book.trim()) names.add(r.book.trim()); });
+  }
+  return [...names].sort();
+}
+
+// --- Day score ---
+function rtDayScore(key) {
+  const habits = rtGetHabits();
+  const rec = rtGetRecord(key);
+  const checkHabits = habits.filter(h => h.type === 'check');
+  let total = checkHabits.length + 1 + 1; // checks + workout(any) + reading(any)
+  let done = 0;
+  checkHabits.forEach(h => { if (rec.checks && rec.checks[h.id]) done++; });
+  if (rec.workout && rec.workout.some(w => w.name)) done++;
+  if (rec.reading && rec.reading.some(r => r.book)) done++;
+  return total > 0 ? done / total : 0;
+}
+
+function rtHasDayRecord(key) {
+  const rec = rtGetRecord(key);
+  if (rec.checks && Object.values(rec.checks).some(v => v)) return true;
+  if (rec.workout && rec.workout.some(w => w.name)) return true;
+  if (rec.reading && rec.reading.some(r => r.book)) return true;
+  return false;
+}
+
+// --- Heatmap ---
+function rtRenderHeatmap() {
+  const container = document.getElementById('rt-heatmap');
+  const today = todayDate();
+  const days = 91; // 13 weeks
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - days + 1);
+  // Adjust to start on Sunday
+  const startDow = startDate.getDay();
+  startDate.setDate(startDate.getDate() - startDow);
+
+  const allRecords = rtGetAllRecords();
+  const habits = rtGetHabits();
+  const checkHabits = habits.filter(h => h.type === 'check');
+  const totalPossible = checkHabits.length + 2;
+
+  // Build week columns
+  let html = '<div style="display:flex;gap:2px;align-items:flex-start">';
+  html += '<div style="display:flex;flex-direction:column;gap:2px;margin-right:2px;padding-top:0">';
+  ['','月','','水','','金',''].forEach(d => html += `<div class="rt-heatmap-dow">${d}</div>`);
+  html += '</div>';
+
+  const d = new Date(startDate);
+  while (d <= today) {
+    html += '<div style="display:flex;flex-direction:column;gap:2px">';
+    for (let dow = 0; dow < 7; dow++) {
+      const k = dateKey(d);
+      if (d > today) {
+        html += '<div class="rt-heatmap-cell lv0"></div>';
+      } else {
+        const rec = allRecords[k] || {};
+        let done = 0;
+        checkHabits.forEach(h => { if (rec.checks && rec.checks[h.id]) done++; });
+        if (rec.workout && rec.workout.some(w => w.name)) done++;
+        if (rec.reading && rec.reading.some(r => r.book)) done++;
+        const ratio = totalPossible > 0 ? done / totalPossible : 0;
+        let lv = 'lv0';
+        if (ratio > 0.75) lv = 'lv4';
+        else if (ratio > 0.5) lv = 'lv3';
+        else if (ratio > 0.25) lv = 'lv2';
+        else if (ratio > 0) lv = 'lv1';
+        html += `<div class="rt-heatmap-cell ${lv}" data-date="${k}"><div class="rt-heatmap-tip">${d.getMonth()+1}/${d.getDate()} ${done}/${totalPossible}</div></div>`;
+      }
+      d.setDate(d.getDate() + 1);
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Click to navigate
+  container.querySelectorAll('.rt-heatmap-cell[data-date]').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const parts = cell.dataset.date.split('-');
+      rtCurrentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+      rtRender();
+    });
+  });
+}
+
+// --- Streaks ---
+function rtRenderStreaks() {
+  const el = document.getElementById('rt-streaks');
+  const habits = rtGetHabits().filter(h => h.type === 'check');
+  const allRecords = rtGetAllRecords();
+  const today = todayDate();
+
+  // Add workout and reading as pseudo-habits
+  const items = [
+    ...habits.map(h => ({ id: h.id, name: h.name, check: (rec) => rec.checks && rec.checks[h.id] })),
+    { id: '_workout', name: '筋トレ', check: (rec) => rec.workout && rec.workout.some(w => w.name) },
+    { id: '_reading', name: '読書', check: (rec) => rec.reading && rec.reading.some(r => r.book) },
+  ];
+
+  let html = '';
+  items.forEach(item => {
+    let current = 0, best = 0, streak = 0;
+    // Walk backwards from today
+    const d = new Date(today);
+    let counting = true;
+    for (let i = 0; i < 365; i++) {
+      const k = dateKey(d);
+      const rec = allRecords[k] || {};
+      if (item.check(rec)) {
+        streak++;
+        if (counting) current = streak;
+      } else {
+        if (counting) counting = false;
+        if (streak > best) best = streak;
+        streak = 0;
+      }
+      d.setDate(d.getDate() - 1);
+    }
+    if (streak > best) best = streak;
+    if (current > best) best = current;
+    html += `<div class="rt-streak-item">
+      <span class="rt-streak-name">${item.name}</span>
+      <span><span class="rt-streak-val">${current}日</span><span class="rt-streak-best">（最長${best}日）</span></span>
+    </div>`;
+  });
+  el.innerHTML = html || '<div style="font-size:12px;color:#c5c0b8">データなし</div>';
+}
+
+// --- Rates ---
+function rtRenderRates() {
+  const el = document.getElementById('rt-rates');
+  const habits = rtGetHabits().filter(h => h.type === 'check');
+  const allRecords = rtGetAllRecords();
+  const today = todayDate();
+
+  // Week: last 7 days
+  const weekDays = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    weekDays.push(dateKey(d));
+  }
+
+  // Month: current month
+  const monthDays = [];
+  const y = today.getFullYear(), m = today.getMonth();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  for (let day = 1; day <= Math.min(today.getDate(), daysInMonth); day++) {
+    monthDays.push(dateKey(new Date(y, m, day)));
+  }
+
+  const items = [
+    ...habits.map(h => ({ name: h.name, check: (rec) => rec.checks && rec.checks[h.id] })),
+    { name: '筋トレ', check: (rec) => rec.workout && rec.workout.some(w => w.name) },
+    { name: '読書', check: (rec) => rec.reading && rec.reading.some(r => r.book) },
+  ];
+
+  function calcRate(keys, checkFn) {
+    if (!keys.length) return 0;
+    let done = 0;
+    keys.forEach(k => { const rec = allRecords[k] || {}; if (checkFn(rec)) done++; });
+    return done / keys.length;
+  }
+
+  let html = '<div style="font-size:11px;font-weight:600;color:#8a8478;margin-bottom:6px">週次（直近7日）</div>';
+  items.forEach(item => {
+    const rate = calcRate(weekDays, item.check);
+    html += `<div style="margin-bottom:8px">
+      <div class="rt-streak-item" style="border:none;padding:2px 0">
+        <span class="rt-streak-name">${item.name}</span>
+        <span class="rt-streak-val">${Math.round(rate*100)}%</span>
+      </div>
+      <div class="rt-rate-bar-wrap"><div class="rt-rate-bar" style="width:${rate*100}%"></div></div>
+    </div>`;
+  });
+
+  html += '<div style="font-size:11px;font-weight:600;color:#8a8478;margin:12px 0 6px">月次（今月）</div>';
+  items.forEach(item => {
+    const rate = calcRate(monthDays, item.check);
+    html += `<div style="margin-bottom:8px">
+      <div class="rt-streak-item" style="border:none;padding:2px 0">
+        <span class="rt-streak-name">${item.name}</span>
+        <span class="rt-streak-val">${Math.round(rate*100)}%</span>
+      </div>
+      <div class="rt-rate-bar-wrap"><div class="rt-rate-bar" style="width:${rate*100}%"></div></div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// --- Manage habits modal ---
+function rtShowManageModal() {
+  const root = document.getElementById('rt-modal-root');
+  const habits = rtGetHabits();
+
+  root.innerHTML = `<div class="rt-modal-overlay" id="rt-modal-overlay">
+    <div class="rt-modal">
+      <div class="rt-modal-header">
+        <h2>習慣を管理</h2>
+        <button class="rt-modal-close" id="rt-modal-close">&#10005;</button>
+      </div>
+      <div class="rt-modal-body">
+        <div id="rt-habit-list">
+          ${habits.map(h => {
+            const cat = RT_CATEGORIES[h.category] || {};
+            return `<div class="rt-habit-list-item" data-hid="${h.id}">
+              <span class="rt-habit-list-cat" style="background:${h.category==='workout'?'#fef2f2':h.category==='beauty'?'#faf5ff':h.category==='money'?'#f0fdf4':'#eff6ff'};color:${h.category==='workout'?'#dc2626':h.category==='beauty'?'#a855f7':h.category==='money'?'#16a34a':'#2563eb'}">${cat.label||h.category}</span>
+              <span class="rt-habit-list-name">${h.name}</span>
+              <span style="font-size:10px;color:#8a8478">${h.type==='check'?'チェック':h.type}</span>
+              <button class="rt-habit-list-btn rt-edit-habit" data-hid="${h.id}">編集</button>
+              <button class="rt-habit-list-btn del rt-del-habit" data-hid="${h.id}">削除</button>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e5e0d5">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">筋トレ種目マスタ</div>
+          <div id="rt-exercise-list" style="max-height:200px;overflow-y:auto;margin-bottom:8px">
+            ${(() => {
+              const exs = rtGetExercises();
+              const grps = {};
+              exs.forEach(ex => { if (!grps[ex.group]) grps[ex.group] = []; grps[ex.group].push(ex); });
+              let h = '';
+              for (const [g, items] of Object.entries(grps)) {
+                h += '<div style="font-size:11px;font-weight:600;color:#8a8478;margin:6px 0 3px">' + g + '</div>';
+                items.forEach(ex => {
+                  h += '<div class="rt-habit-list-item" style="padding:4px 0"><span class="rt-habit-list-name" style="font-size:12px">' + ex.name + '</span><button class="rt-habit-list-btn del rt-del-exercise" data-exid="' + ex.id + '">削除</button></div>';
+                });
+              }
+              return h || '<div style="color:#c5c0b8;font-size:12px">種目なし</div>';
+            })()}
+          </div>
+          <div class="rt-form-row">
+            <span class="rt-form-label">種目名</span>
+            <input class="rt-form-input" id="rt-new-exercise-name" placeholder="例: ダンベルプレス">
+          </div>
+          <div class="rt-form-row">
+            <span class="rt-form-label">部位</span>
+            <select class="rt-form-select" id="rt-new-exercise-group">
+              <option value="胸">胸</option><option value="背中">背中</option><option value="肩">肩</option>
+              <option value="腕">腕</option><option value="脚">脚</option><option value="腹">腹</option>
+              <option value="有酸素">有酸素</option><option value="全身">全身</option>
+            </select>
+          </div>
+          <button class="rt-add-btn" id="rt-add-exercise-btn" style="margin-bottom:12px">+ 種目を追加</button>
+        </div>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e5e0d5">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">新しい習慣を追加</div>
+          <div class="rt-form-row">
+            <span class="rt-form-label">名前</span>
+            <input class="rt-form-input" id="rt-new-name" placeholder="習慣名">
+          </div>
+          <div class="rt-form-row">
+            <span class="rt-form-label">カテゴリ</span>
+            <select class="rt-form-select" id="rt-new-cat">
+              <option value="beauty">美容</option>
+              <option value="money">お金</option>
+              <option value="workout">筋トレ</option>
+              <option value="reading">読書</option>
+            </select>
+          </div>
+          <div class="rt-form-row">
+            <span class="rt-form-label">記録方式</span>
+            <select class="rt-form-select" id="rt-new-type">
+              <option value="check">チェック</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="rt-modal-footer">
+        <button class="rt-add-btn" id="rt-add-habit-btn">+ 追加</button>
+        <button class="save-btn" id="rt-modal-done">完了</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('rt-modal-close').addEventListener('click', rtCloseModal);
+  document.getElementById('rt-modal-overlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) rtCloseModal(); });
+  document.getElementById('rt-modal-done').addEventListener('click', rtCloseModal);
+
+  // Exercise master: add
+  document.getElementById('rt-add-exercise-btn').addEventListener('click', () => {
+    const name = document.getElementById('rt-new-exercise-name').value.trim();
+    if (!name) return;
+    const group = document.getElementById('rt-new-exercise-group').value;
+    const exercises = rtGetExercises();
+    if (exercises.some(ex => ex.name === name)) { alert('同名の種目が既に登録されています'); return; }
+    exercises.push({ id: 'ex' + Date.now().toString(36), name, group });
+    rtSaveExercises(exercises);
+    document.getElementById('rt-new-exercise-name').value = '';
+    rtShowManageModal();
+  });
+
+  // Exercise master: delete
+  document.querySelectorAll('.rt-del-exercise').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('この種目をマスタから削除しますか？')) return;
+      const exercises = rtGetExercises().filter(ex => ex.id !== btn.dataset.exid);
+      rtSaveExercises(exercises);
+      rtShowManageModal();
+    });
+  });
+
+  document.getElementById('rt-add-habit-btn').addEventListener('click', () => {
+    const name = document.getElementById('rt-new-name').value.trim();
+    if (!name) return;
+    const cat = document.getElementById('rt-new-cat').value;
+    const type = document.getElementById('rt-new-type').value;
+    const habits = rtGetHabits();
+    habits.push({ id: rtNextId(), name, category: cat, type, order: habits.length });
+    rtSaveHabits(habits);
+    document.getElementById('rt-new-name').value = '';
+    rtShowManageModal(); // refresh
+  });
+
+  // Edit
+  document.querySelectorAll('.rt-edit-habit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const hid = btn.dataset.hid;
+      const habits = rtGetHabits();
+      const h = habits.find(x => x.id === hid);
+      if (!h) return;
+      const newName = prompt('習慣名を変更:', h.name);
+      if (newName && newName.trim()) {
+        h.name = newName.trim();
+        rtSaveHabits(habits);
+        rtShowManageModal();
+      }
+    });
+  });
+
+  // Delete
+  document.querySelectorAll('.rt-del-habit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const hid = btn.dataset.hid;
+      if (!confirm('この習慣を削除しますか？（過去の記録は保持されます）')) return;
+      const habits = rtGetHabits().filter(h => h.id !== hid);
+      rtSaveHabits(habits);
+      rtShowManageModal();
+    });
+  });
+}
+
+function rtCloseModal() {
+  document.getElementById('rt-modal-root').innerHTML = '';
+  rtRender();
+}
+
+// --- Event listeners ---
+document.getElementById('rt-prev-day').addEventListener('click', () => {
+  rtCurrentDate.setDate(rtCurrentDate.getDate() - 1); rtRender();
+});
+document.getElementById('rt-next-day').addEventListener('click', () => {
+  rtCurrentDate.setDate(rtCurrentDate.getDate() + 1); rtRender();
+});
+document.getElementById('rt-today-btn').addEventListener('click', () => {
+  rtCurrentDate = todayDate(); rtRender();
+});
+document.getElementById('rt-manage-btn').addEventListener('click', rtShowManageModal);
+
+// Init
+rtRender();
+</script>
+</body>
+</html>

@@ -15,6 +15,10 @@
   .fixed-header-nav a { display: inline-block; padding: 5px 12px; border-radius: 6px; border: 1px solid #d5d0c5; font-size: 12px; font-weight: 500; color: #6b6560; transition: all 0.15s; white-space: nowrap; text-decoration: none; }
   .fixed-header-nav a:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f0f4f8; }
   .fixed-header-nav a.nav-active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+  .fixed-header-nav a.nav-ref { border-style: dashed; font-size: 11px; color: #a09a90; }
+  .fixed-header-nav a.nav-ref:hover { border-color: #1e3a5f; color: #1e3a5f; border-style: solid; }
+  .nav-group { display: flex; align-items: center; gap: 6px; }
+  .nav-sep { width: 1px; height: 20px; background: #e5e0d5; margin: 0 6px; flex-shrink: 0; }
 
   h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; color: #1a1814; }
   .subtitle { font-size: 13px; color: #8a8478; margin-bottom: 16px; }
@@ -84,11 +88,21 @@
 <div class="fixed-header">
   <div class="fixed-header-title">Work Manager</div>
   <nav class="fixed-header-nav">
-    <a href="gantt.html">ガントチャート</a>
-    <a href="daily-checklist.html" class="nav-active">日次チェック</a>
-    <a href="goal-plan.html">売却戦略</a>
-    <a href="project-structure.html">プロジェクト構成</a>
-    <a href="consulting-playbook.html">コンサル技術</a>
+    <div class="nav-group">
+      <a href="gantt.html">タスク管理</a>
+      <a href="self-management.html" class="nav-active">自己管理</a>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <a href="goal-plan.html">事業計画</a>
+      <a href="../backoffice/cashflow/dashboard.html">管理会計</a>
+      <a href="../backoffice/cashflow/ss_dashboard.html">予実管理</a>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <a href="project-structure.html" class="nav-ref">プロジェクト構成</a>
+      <a href="consulting-playbook.html" class="nav-ref">コンサル技術</a>
+    </div>
   </nav>
 </div>
 
