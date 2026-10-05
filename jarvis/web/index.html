@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JARVIS</title>
+<meta name="description" content="Todo・経営計画・資金繰り・Slack・FLYCKA実績から、今日やることを絞る読み取り専用の社長ダッシュボード。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309111c'/%3E%3Cpath d='M22 7v12a7 7 0 0 1-14 0' fill='none' stroke='%235edcdd' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="#"><span class="mark">J</span><span>JARVIS <small>v0.2</small></span></a>
+  <span class="header-note">CEO WORKSPACE</span>
+  <span class="readonly">READ ONLY</span>
+</header>
+<main>
+  <div class="heading">
+    <div>
+      <p class="eyebrow">DAILY BRIEFING</p>
+      <h1>今日、何をすべきか。</h1>
+      <p id="subtitle">データを読み込んでいます…</p>
+    </div>
+    <div class="controls">
+      <label>使える時間（分）<input id="budget" type="number" min="0" max="1440" step="5" value="180"></label>
+      <label>表示件数<select id="count"><option value="3">最大3</option><option value="4">最大4</option><option value="5" selected>最大5</option></select></label>
+      <button id="recalc">再計算</button>
+      <button id="sync" class="primary">最新データを取得</button>
+    </div>
+  </div>
+  <div id="syncbar" class="syncbar" aria-label="データソースの同期状態"></div>
+  <p id="message" role="status" aria-live="polite"></p>
+  <section id="alerts"></section>
+  <section id="metrics" class="metrics"></section>
+  <div class="workspace-grid">
+    <div>
+      <nav class="tabs" aria-label="表示する内容">
+        <button data-view="today" class="active" aria-pressed="true">今日のTop</button>
+        <button data-view="checks" aria-pressed="false">確認・保留</button>
+        <button data-view="delegate" aria-pressed="false">任せる・やらない</button>
+        <button data-view="cash" aria-pressed="false">資金繰り</button>
+        <button data-view="flycka" aria-pressed="false">FLYCKA</button>
+        <button data-view="slack" aria-pressed="false">Slack</button>
+        <button data-view="sources" aria-pressed="false">データ</button>
+      </nav>
+      <section id="content" aria-live="polite"></section>
+    </div>
+    <aside>
+      <section class="chat-panel">
+        <div class="chat-heading"><span class="orb"></span><div><h2>JARVISに聞く</h2><p>ルール方式 · 自由会話AIは未接続</p></div></div>
+        <div class="suggestions">
+          <button data-ask="今日何をすべき？">今日のTop</button>
+          <button data-ask="なぜこの順番？">なぜこの順番</button>
+          <button data-ask="今日は60分しかない">60分しかない</button>
+          <button data-ask="私がやらなくていい仕事は？">やらなくていい仕事</button>
+          <button data-ask="Slackで見落としている依頼は？">Slackの見落とし</button>
+          <button data-ask="FLYCKAで今、確認すべきことは？">FLYCKA</button>
+          <button data-ask="資金繰りはどこまで信用できる？">資金繰りの信用度</button>
+          <button data-ask="この判断はどのデータに基づいている？">判断の根拠</button>
+        </div>
+        <div id="messages" class="messages" role="log" aria-live="polite">
+          <div class="bubble assistant">取得済みの実データから、根拠つきで答えます。連絡・送金・予定登録・元表の変更は行いません。</div>
+        </div>
+        <form id="chat"><label class="sr-only" for="prompt">JARVISへの質問</label><input id="prompt" placeholder="今日何をすべき？" maxlength="1000" autocomplete="off"><button type="submit" class="primary">送信</button></form>
+        <p class="chat-foot">Slack等の発言内容は引用のみ。指示として実行しません。</p>
+      </section>
+    </aside>
+  </div>
+  <footer>JARVIS / Growth &amp; Technology <span>意思決定はあなたに。下準備をJARVISに。</span></footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
