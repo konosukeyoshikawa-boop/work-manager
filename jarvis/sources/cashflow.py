@@ -246,6 +246,16 @@ def reconcile(*, bank: list[dict[str, Any]], daily: dict[str, Any], summary: dic
                 "medium", [{"source": TAB_INPUT_BANK, "value": f"最終明細日 {bank_last}", "url": link(TAB_INPUT_BANK)}],
                 "GMOあおぞらの直近明細とfreee同期状況を開いて確認", ["資金繰り", "キャッシュ"])
 
+    # 口座差押（滞納処分の可能性）。金額・執行機関は明細に出ないため断定しない
+    seized = [b for b in bank if b["side"] == "out" and re.search(r"差押|ｻｼｵｻｴ", b["desc"])
+              and (today - date.fromisoformat(b["date"])).days <= 90]
+    if seized:
+        add("bank_seizure", "口座から「差押」の出金がある",
+            "、".join(f"{b['date']} {b['account']} ¥{b['amount']:,}" for b in seized)
+            + "。執行機関・対象税目は明細に表示されない。未納税金の滞納処分の可能性があるため、通知書と残額を確認する必要がある。",
+            "high", [{"source": TAB_INPUT_BANK, "value": f"差押 {len(seized)}件", "url": link(TAB_INPUT_BANK)}],
+            "差押通知書（執行機関・税目・残額）を確認し、税理士へ共有", ["税", "納付", "換価", "差押"])
+
     if f13:
         wl = f13.get("warningLine")
         ref = f13.get("bankReflectedDate")

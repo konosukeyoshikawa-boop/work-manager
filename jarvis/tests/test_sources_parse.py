@@ -99,6 +99,13 @@ def test_reconcile_tax_found_in_bank_is_low() -> None:
     assert ids["tax_payment"]["severity"] == "low"
 
 
+def test_reconcile_flags_bank_seizure() -> None:
+    rows = BANK[:-1] + [["2026-09-29", "GMOあおぞら（メイン）", "差押", "291160", "出金", "expense_other"]]
+    ids = {c["id"]: c for c in _reconcile(rows)["checks"]}
+    assert ids["bank_seizure"]["severity"] == "high"
+    assert "291,160" in ids["bank_seizure"]["detail"] and "断定" not in ids["bank_seizure"]["title"]
+
+
 def test_parse_bank_rejects_unknown_header() -> None:
     with pytest.raises(ValueError):
         cashflow.parse_bank_rows([["a", "b"]])
